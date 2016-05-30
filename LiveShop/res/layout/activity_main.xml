@@ -1,0 +1,163 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity" >
+
+    <LinearLayout
+        android:id="@+id/urlLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+        
+            
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:textSize="34dp"
+            android:textColor="#ffffff"
+            android:background="#000000"           
+            android:text="网易视频云" />
+
+        <EditText
+            android:id="@+id/RTMP_URL"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/shape"
+            android:paddingLeft="13dp"
+			android:paddingTop="13dp" 
+			android:paddingBottom="13dp" 
+			android:textColor="#333333"
+            android:textSize="24dp"
+            android:hint="请输入直播流地址：URL" />
+    
+        <LinearLayout
+            android:id="@+id/radioButtonLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:orientation="horizontal" >
+            
+            <RadioGroup android:id="@+id/HDGroup" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="3"
+                android:orientation="horizontal"
+                android:gravity="center">
+                
+                <RadioButton 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:layout_weight="1"
+                    android:id="@+id/radioHD" 
+                    android:textSize="25dp"
+                    android:text="高清" >               
+                </RadioButton>
+            </RadioGroup>
+        
+            <RadioGroup android:id="@+id/SDGroup" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <RadioButton 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:layout_weight="1"
+                    android:id="@+id/radioSD" 
+                    android:textSize="25dp"
+                    android:text="标清" >               
+                </RadioButton>    
+            </RadioGroup>
+        
+            <RadioGroup android:id="@+id/FluencyGroup" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_weight="0.4"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <RadioButton 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:layout_weight="1"
+                    android:id="@+id/radioFluency" 
+                    android:textSize="25dp"
+                    android:text="流畅">          
+                </RadioButton> 
+            </RadioGroup>
+         </LinearLayout>
+
+         <LinearLayout
+            android:id="@+id/filterChooseLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:orientation="horizontal">
+
+            <RadioGroup android:id="@+id/NormalModeGroup" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="3"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <RadioButton 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:layout_weight="1"
+                    android:id="@+id/NormalModeBtn" 
+                    android:textSize="25dp"
+                    android:text="普通模式">          
+                </RadioButton> 
+            </RadioGroup>
+            
+            <RadioGroup android:id="@+id/BeautyModeGroup" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_weight="0.4"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <RadioButton 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:layout_weight="1"
+                    android:id="@+id/BeautyModeBtn" 
+                    android:textSize="25dp"
+                    android:text="滤镜模式">          
+                </RadioButton> 
+            </RadioGroup>
+         </LinearLayout>
+
+         <Button
+            android:id="@+id/StartAVBtn"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:textSize="28dp"
+            android:textColor="#ffffff"
+            android:background="@drawable/enter_live"
+            android:layout_marginTop="40dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:text="进 入 直 播" />
+                
+    </LinearLayout>
+
+</RelativeLayout>

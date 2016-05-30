@@ -1,0 +1,126 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:id="@+id/videoLayout"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:layout_alignParentTop="true"
+        android:background="#000000" >
+
+        <com.netease.livestreamingcapture.LiveSurfaceView
+            android:id="@+id/videoview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true" />
+        
+	    <LinearLayout
+	        android:id="@+id/filter"
+	        android:layout_alignParentBottom="true"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="horizontal">
+	    
+	        <ImageButton
+	            android:id="@+id/StartStopAVBtn"
+	            android:layout_width="0dp"
+	            android:layout_height="50dp"
+	            android:gravity="center_horizontal"
+	            android:layout_gravity="center_horizontal"
+	            android:background="#000000"
+	            android:layout_weight="1"
+	            android:padding="0dp"
+	            android:src="@drawable/play" /> 
+	    </LinearLayout>
+        
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/videoLayout"
+        android:orientation="horizontal"
+        android:padding="0dp">
+        
+            
+        <ImageButton
+            android:id="@+id/NetworkInfoBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:background="#000000"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:src="@drawable/net_info" />  
+            
+        <ImageButton
+            android:id="@+id/captureBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
+            android:background="#000000"
+            android:gravity="center_horizontal"
+            android:padding="0dp"
+            android:src="@drawable/shoot" />
+
+        <ImageButton
+            android:id="@+id/photosBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:background="#000000"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:src="@drawable/photos" />
+
+        <ImageButton
+            android:id="@+id/orderBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:background="#000000"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:src="@drawable/order" />
+        
+        <ImageButton
+            android:id="@+id/switchBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:background="#000000"
+            android:layout_weight="1"
+            android:padding="0dp"
+            android:src="@drawable/ic_switch" />  
+ 
+    </LinearLayout>
+    
+    <LinearLayout
+        android:id="@+id/chatLayout"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/controlsLayout"
+        android:orientation="horizontal"
+        android:padding="0dp" >
+
+        <WebView
+	        android:id="@+id/chatWebView"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:layout_centerHorizontal="true"
+	        android:padding="0dp"
+         />
+        
+    </LinearLayout>
+
+    
+      
+</RelativeLayout>

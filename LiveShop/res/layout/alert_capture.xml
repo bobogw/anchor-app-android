@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/popup_window"
+    android:layout_width="320dp"
+    android:layout_height="500dp"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/pop_window_stroke"
+    android:orientation="vertical" >
+
+    <FrameLayout
+        android:id="@+id/titleLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:background="#000000" >
+        
+        <TextView
+            android:id="@+id/AlertTitle"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:gravity="center"
+            android:text="添加说明"
+            android:textColor="#ffffff"
+            android:background="#000000"  
+            android:textSize="34dp" />
+        <ImageButton
+		    android:id="@+id/closeBtn"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_gravity="center_vertical"
+		    android:layout_marginLeft="10dp"
+		    android:padding="0dp"
+		    android:src="@drawable/back" />
+		
+	</FrameLayout>
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            android:layout_below="@+id/titleLayout"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/play" />
+        
+        <LinearLayout
+	        android:id="@+id/recordLayout"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_below="@+id/imageView1"
+	        android:orientation="horizontal" >
+	        
+            <Button
+                android:id="@+id/recordButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_weight="3"
+                android:text="录音说明" />
+
+            <TextView
+                android:id="@+id/recordLenth"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="right|center_vertical"
+                android:text="0" />
+
+            <Button
+                android:id="@+id/delButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight="25dp"
+                android:text="删除" />
+            
+        </LinearLayout>
+            
+        <LinearLayout
+	        android:id="@+id/introLayout"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_below="@+id/recordLayout"
+	        android:orientation="vertical" >
+
+			<EditText
+			    android:id="@+id/introTxt"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:layout_below="@+id/recordButton"
+			    android:enabled="true"
+			    android:gravity="top"
+			    android:inputType="textMultiLine"
+			    android:minLines="4"
+			    android:maxLines="4"
+			    android:scrollbars="vertical" 
+			    android:background="@android:drawable/edit_text" />
+      
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/submitButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:text="提交" />
+
+</RelativeLayout>
