@@ -5,23 +5,30 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.StatFs;
 import android.util.Log;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.view.View;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import java.io.IOException;
 
 import org.json.JSONObject;
 
@@ -38,6 +45,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.hardware.Camera.Size;
 import android.content.res.AssetManager;
 import android.media.AudioFormat;
 import android.view.MotionEvent;
@@ -45,6 +53,8 @@ import android.view.SurfaceView;
 
 import com.netease.LSMediaCapture.*;
 import com.netease.LSMediaCapture.lsMediaCapture.*;
+import com.netease.LSMediaCapture.util.storage.StorageType;
+import com.netease.LSMediaCapture.util.storage.StorageUtil;
 import com.netease.livestreamingFilter.filter.Filters;
 import com.netease.livestreamingFilter.view.CameraSurfaceView;
 
@@ -58,12 +68,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	
 	private ImageButton switchBtn;
 	private ImageButton networkInfoBtn;
-//----------------------------add buttons----------------------------
-	private ImageButton captureBtn;
-	private ImageButton photosBtn;
-	private ImageButton orderBtn;
 	
-//-------------------------------------------------------------------
 	private lsMediaCapture mLSMediaCapture = null;
 	private String mliveStreamingURL = null;
 	private String mVideoResolution = null;
@@ -79,16 +84,17 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	
     //SDK日志级别相关变量
     private int mLogLevel = LS_LOG_ERROR;
+    private String mLogPath = null;
     
 	private CameraSurfaceView mCameraSurfaceView;
     private LiveSurfaceView mVideoView;
     
 	private boolean m_liveStreamingOn = false;
-	private boolean m_liveStreamingPause = false;
 	private boolean m_liveStreamingInit = false;
 	private boolean m_liveStreamingInitFinished = false;
 	private boolean m_tryToStopLivestreaming = false;
 	private boolean m_QoSToStopLivestreaming = false;
+	private boolean m_startVideoCamera = false;
 	
 	private Intent mIntentLiveStreamingStopFinished = new Intent("LiveStreamingStopFinished");  
 	private Context mContext;
@@ -115,6 +121,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     private File mWaterMarkAppFileDirectory = null;
     private int mWaterMarkPosX = 10;//视频水印坐标(X)
     private int mWaterMarkPosY = 10;//视频水印坐标(Y)
+    
+    //视频截图相关变量
+    private String mScreenShotFilePath = "/sdcard/";//视频截图文件路径
+    private String mScreenShotFileName = "test.jpg";//视频截图文件名
 
     //查询摄像头支持的采集分辨率信息相关变量
     private Thread mCameraThread;
@@ -124,12 +134,14 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	
 	private float mCurrentDistance;  
     private float mLastDistance = -1; 
-                                                                                       
+	
 	public static final int CAMERA_POSITION_BACK = 0;
 	public static final int CAMERA_POSITION_FRONT = 1;
 	
 	public static final int CAMERA_ORIENTATION_PORTRAIT = 0;
 	public static final int CAMERA_ORIENTATION_LANDSCAPE = 1;
+	public static final int CAMERA_ORIENTATION_PORTRAIT_UPSIDEDOWN = 2;
+	public static final int CAMERA_ORIENTATION_LANDSCAPE_LEFTSIDERIGHT = 3;
 	
 	public static final int LS_VIDEO_CODEC_AVC = 0;
 	public static final int LS_VIDEO_CODEC_VP9 = 1;
@@ -164,9 +176,14 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     
     private static final String TAG = "NeteaseLiveStream";
     
+  //----------------------------add buttons----------------------------
+  	private ImageButton captureBtn;
+  	private ImageButton photosBtn;
+  	private ImageButton orderBtn;
+  	
+  //-------------------------------------------------------------------    
     //添加聊天webview
     private WebView chatWebView;
-    
     
     //提示用户不能使用滤镜功能的对话框
     private void showAlertDialog1() {
@@ -356,11 +373,26 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	//音视频参数设置
 	public void paraSet(){	
 
+		//创建参数实例
+        mLSLiveStreamingParaCtx = mLSMediaCapture.new LSLiveStreamingParaCtx();
+        mLSLiveStreamingParaCtx.eHaraWareEncType = mLSLiveStreamingParaCtx.new HardWareEncEnable();
+        mLSLiveStreamingParaCtx.eOutFormatType = mLSLiveStreamingParaCtx.new OutputFormatType();
+        mLSLiveStreamingParaCtx.eOutStreamType = mLSLiveStreamingParaCtx.new OutputStreamType();
+        mLSLiveStreamingParaCtx.sLSAudioParaCtx = mLSLiveStreamingParaCtx.new LSAudioParaCtx();
+        mLSLiveStreamingParaCtx.sLSAudioParaCtx.codec = mLSLiveStreamingParaCtx.sLSAudioParaCtx.new LSAudioCodecType();
+        mLSLiveStreamingParaCtx.sLSVideoParaCtx = mLSLiveStreamingParaCtx.new LSVideoParaCtx();
+        mLSLiveStreamingParaCtx.sLSVideoParaCtx.codec = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new LSVideoCodecType();
+        mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new CameraPosition();
+        mLSLiveStreamingParaCtx.sLSVideoParaCtx.interfaceOrientation = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new CameraOrientation();
+        
         //滤镜模式下不开视频水印
 		if(!mLSLiveStreamingParaCtx.eHaraWareEncType.hardWareEncEnable && mWaterMarkOn) {
 		    waterMark();
 		}
 		
+		//设置摄像头信息，并开始本地视频预览
+		mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition = CAMERA_POSITION_BACK;//默认后置摄像头，用户可以根据需要调整
+				
 		//输出格式：视频、音频和音视频
 		mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType = HAVE_AV;
 
@@ -382,6 +414,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         mLSLiveStreamingParaCtx.eHaraWareEncType.hardWareEncEnable = mHardWareEncEnable;	
         
         //视频编码参数配置，视频码率可以由用户任意设置，视频分辨率按照如下表格设置
+        //-------------1、普通模式----------------
         //采集分辨率     编码分辨率     建议码率
         //1280x720     1280x720     1500kbps
         //1280x720     960x540      800kbps
@@ -392,13 +425,21 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //640x480      640x360      500kbps
         //320x240      320x240      250kbps
         //320x240      320x180      200kbps
+        //-------------2、滤镜模式----------------
+        //采集分辨率     编码分辨率     建议码率
+        //1280x720     1280x720     1650kbps
+        //960x720      960x720      1100kbps
+        //960x540      960x540      880kbps
+        //640x480      640x480      660kbps
+        //320x240      320x240      275kbps
+        
         //如下是编码分辨率等信息的设置
         if(mVideoResolution.equals("HD")) {
         	mLSLiveStreamingParaCtx.sLSVideoParaCtx.fps = 20;
-        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.bitrate = 800000;
+        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.bitrate = 1500000;
         	mLSLiveStreamingParaCtx.sLSVideoParaCtx.codec.videoCODECType = LS_VIDEO_CODEC_AVC;
-        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.width = 960;
-        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.height = 540;
+        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.width = 1280;
+        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.height = 720;
         }
         else if(mVideoResolution.equals("SD")) {
         	mLSLiveStreamingParaCtx.sLSVideoParaCtx.fps = 20;
@@ -418,20 +459,17 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	
 	public void buttonInit() {
 
-        //开始/停止直播按钮初始化	
+        //开始直播按钮初始化	
 		startPauseResumeBtn = (ImageButton)findViewById(R.id.StartStopAVBtn);
         startPauseResumeBtn.setOnClickListener(new OnClickListener() {
         	public void onClick(View v)
         	{
         		if(!m_liveStreamingOn)
         		{
-        			if(!m_liveStreamingPause)
-        			{
-        		        //if(mliveStreamingURL.isEmpty())
-        			    //return;
+        		    if(mliveStreamingURL.isEmpty())
+        			    return;
         		    
-        		        startAV();  
-        			}
+        		    startAV();  
         		    
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
         		}
@@ -464,12 +502,16 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
            	}
            	
            });
-
-//---------------------------------add buttons-----------------------------------------
+        
+      //---------------------------------add buttons-----------------------------------------
         captureBtn = (ImageButton)findViewById(R.id.captureBtn);
-        
-        
-        
+        captureBtn.setOnClickListener(new OnClickListener(){
+        	public void onClick(View v){
+        		//发起截图请求，等待截图完毕返回通知时取得截屏Bitmap
+        		mLSMediaCapture.enableScreenShot();
+        	}
+        });
+       
         photosBtn = (ImageButton)findViewById(R.id.photosBtn);
         photosBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
@@ -486,9 +528,16 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         	}
         });
 //-------------------------------------------------------------------------------------
+
 	}
 
 	//直播滤镜相关方法（1）：滤镜种类
+	//NORMAL:               普通
+	//BLACK_WHITE:          黑白
+	//NIGHT_MODE:           夜景
+	//BLUR:                 模糊
+	//FACE_WHITEN:          美白
+	//SEPIA:                黄昏
     private enum FilterType {        
         NORMAL, BLACK_WHITE, NIGHT_MODE, BLUR, FACE_WHITEN, SEPIA       
     }
@@ -577,6 +626,18 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     	}
 	}
     
+    //获取日志文件路径
+    public void getLogPath()
+    {
+    	try {			
+			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+				mLogPath = Environment.getExternalStorageDirectory() + "/log/";					
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "an error occured while writing file...", e);
+		}
+    }
+
     //切换前后摄像头
 	private void switchCamera() {
 		if(mLSMediaCapture != null) {
@@ -585,25 +646,26 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	}
 	
 	//开始直播
-	private void startAV(){
+	private void startAV(){       
 		if(mLSMediaCapture != null && m_liveStreamingInitFinished) {
 			
+			//7、设置视频水印参数（可选）
 			if(!mHardWareEncEnable && mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO)
 			{
 			    mLSMediaCapture.setWaterMarkPara(mWaterMarkOn, mWaterMarkFilePath, mWaterMarkPosX, mWaterMarkPosY);
 			}
 			
+			//8、开始直播
 		    mLSMediaCapture.startLiveStreaming();
 		    m_liveStreamingOn = true;
 		}
 	}
-		
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);   //应用运行时，保持屏幕高亮，不锁屏
-               
+        
         //从直播设置页面获取推流URL和分辨率信息
         //alert1用于检测设备SDK版本是否符合开启滤镜要求，alert2用于检测设备的硬件编码模块（与滤镜相关）是否正常
         mliveStreamingURL = getIntent().getStringExtra("mediaPath");
@@ -634,6 +696,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         	mHardWareEncEnable = false;
         }
 
+		//从布局文件中获取view，用于本地视频预览
 		if(mHardWareEncEnable)
 		{
 			setContentView(R.layout.video_player_opengl_surface_view);
@@ -646,13 +709,14 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         }
 
         m_liveStreamingOn = false;
-        m_liveStreamingPause = false;
         m_tryToStopLivestreaming = false;
         
         //获取摄像头支持的分辨率信息，根据这个信息，用户可以选择合适的视频preview size和encode size
         //!!!!注意，用户在设置视频采集分辨率和编码分辨率的时候必须预先获取摄像头支持的采集分辨率，并设置摄像头支持的采集分辨率，否则会造成不可预知的错误，导致直播推流失败和SDK崩溃
-        //用户可以采用下面的方法，获取摄像头支持的采集分辨率列表
+        //用户可以采用下面的方法(getCameraSupportSize)，获取摄像头支持的采集分辨率列表
         //获取分辨率之后，用户可以按照下表选择性设置采集分辨率和编码分辨率(注意：一定要Android设备支持该种采集分辨率才可以设置，否则会造成不可预知的错误，导致直播推流失败和SDK崩溃)
+        
+        //-------------1、普通模式----------------
         //采集分辨率     编码分辨率     建议码率
         //1280x720     1280x720     1500kbps
         //1280x720     960x540      800kbps
@@ -663,12 +727,19 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //640x480      640x360      500kbps
         //320x240      320x240      250kbps
         //320x240      320x180      200kbps
+        //-------------2、滤镜模式----------------
+        //采集分辨率     编码分辨率     建议码率
+        //1280x720     1280x720     1650kbps
+        //960x720      960x720      1100kbps
+        //960x540      960x540      880kbps
+        //640x480      640x480      660kbps
+        //320x240      320x240      275kbps
         
         //List<Camera.Size> cameraSupportSize = getCameraSupportSize();
-        
+        //设置视频预览分辨率
         if(mVideoResolution.equals("HD"))
         {
-        	mVideoPreviewWidth = 960;
+        	mVideoPreviewWidth = 1280;
         	mVideoPreviewHeight = 720;
         }
         else if(mVideoResolution.equals("SD"))
@@ -684,56 +755,55 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
 	    mContext = this; 	
 	    
-	    //创建直播实例
+	    //发送统计数据到网络信息界面
+        staticsHandle();
+	    
+	    //1、创建直播实例
         mLSMediaCapture = new lsMediaCapture(this, mContext, mVideoPreviewWidth, mVideoPreviewHeight);
 
-		if(mHardWareEncEnable)
-		{
-		    mCameraSurfaceView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
-        }
-		else
-		{
-		    mVideoView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
-		}
-
-        //创建参数实例
-        mLSLiveStreamingParaCtx = mLSMediaCapture.new LSLiveStreamingParaCtx();
-        mLSLiveStreamingParaCtx.eHaraWareEncType = mLSLiveStreamingParaCtx.new HardWareEncEnable();
-        mLSLiveStreamingParaCtx.eOutFormatType = mLSLiveStreamingParaCtx.new OutputFormatType();
-        mLSLiveStreamingParaCtx.eOutStreamType = mLSLiveStreamingParaCtx.new OutputStreamType();
-        mLSLiveStreamingParaCtx.sLSAudioParaCtx = mLSLiveStreamingParaCtx.new LSAudioParaCtx();
-        mLSLiveStreamingParaCtx.sLSAudioParaCtx.codec = mLSLiveStreamingParaCtx.sLSAudioParaCtx.new LSAudioCodecType();
-        mLSLiveStreamingParaCtx.sLSVideoParaCtx = mLSLiveStreamingParaCtx.new LSVideoParaCtx();
-        mLSLiveStreamingParaCtx.sLSVideoParaCtx.codec = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new LSVideoCodecType();
-        mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new CameraPosition();
-        mLSLiveStreamingParaCtx.sLSVideoParaCtx.interfaceOrientation = mLSLiveStreamingParaCtx.sLSVideoParaCtx.new CameraOrientation();
-
-        //发送统计数据到网络信息界面
-        staticsHandle();
+        //2、设置直播参数
+    	paraSet();
     	
-        if(mLSMediaCapture != null) {  
-        	boolean ret = false;
-        	
-        	//设置摄像头信息，并开始本地视频预览
-        	mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition = CAMERA_POSITION_BACK;//默认后置摄像头，用户可以根据需要调整
-            if(mHardWareEncEnable)
-			{
-			    mLSMediaCapture.startVideoPreviewOpenGL(mCameraSurfaceView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
+        //3、设置日志级别和日志文件路径
+    	getLogPath();
+        if(mLSMediaCapture != null) {
+    	    mLSMediaCapture.setTraceLevel(mLogLevel, mLogPath);
+        }
+        
+        //4、设置视频预览参数
+        if(mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO) 
+        {
+		    if(mHardWareEncEnable)
+		    {
+		        mCameraSurfaceView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
             }
-			else
-			{
-			    mLSMediaCapture.startVideoPreview(mVideoView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
-			}
+		    else
+		    {
+		        mVideoView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
+		    }
+        }
+        
+        if(mLSMediaCapture != null) {
+        	boolean ret = false;
 
-            //配置音视频和camera参数
-            paraSet();
-            
-            //设置日志级别
-        	mLSMediaCapture.setTraceLevel(mLogLevel);
-        	
-            //初始化直播推流
+        	//5、开启视频预览
+        	if(mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO) 
+            {
+                if(mHardWareEncEnable)
+			    {
+			        mLSMediaCapture.startVideoPreviewOpenGL(mCameraSurfaceView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
+                }
+			    else
+			    {
+			        mLSMediaCapture.startVideoPreview(mVideoView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
+			    }
+                
+                m_startVideoCamera = true;
+            }
+
+            //6、初始化直播推流
 	        ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
-	        
+
 	        if(ret) {
 	        	m_liveStreamingInit = true;
 	        	m_liveStreamingInitFinished = true;
@@ -778,16 +848,24 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         }
         
         //停止直播调用相关API接口
-		if(mLSMediaCapture != null && m_liveStreamingInitFinished && m_liveStreamingOn) {		
-			mLSMediaCapture.stopLiveStreaming();		
-			mLSMediaCapture.stopVideoPreview();
-			mLSMediaCapture.destroyVideoPreview();	
+		if(mLSMediaCapture != null && m_liveStreamingOn) {	
+			
+			//停止直播，释放资源
+			mLSMediaCapture.stopLiveStreaming();	
+			
+			//如果音视频或者单独视频直播，需要关闭视频预览
+			if(m_startVideoCamera)
+			{
+				mLSMediaCapture.stopVideoPreview();
+				mLSMediaCapture.destroyVideoPreview();
+			}
+
 			mLSMediaCapture = null;
 			
   	        mIntentLiveStreamingStopFinished.putExtra("LiveStreamingStopFinished", 2);   
             sendBroadcast(mIntentLiveStreamingStopFinished); 
 		}
-		else if(mLSMediaCapture != null && m_liveStreamingInitFinished)
+		else if(mLSMediaCapture != null && m_startVideoCamera)
 		{		
 			mLSMediaCapture.stopVideoPreview();
 			mLSMediaCapture.destroyVideoPreview();	
@@ -810,7 +888,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      
     protected void onPause(){  
         if(mLSMediaCapture != null) {  		
-    		if(!m_tryToStopLivestreaming)
+    		if(!m_tryToStopLivestreaming && m_liveStreamingOn)
     		{  			
         		//继续视频推流，推固定图像
         		mLSMediaCapture.resumeVideoEncode();
@@ -846,7 +924,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     }
     
     //处理SDK抛上来的异常和事件，用户需要在这里监听各种消息，进行相应的处理。
-    //例如监听断网消息，用户根据断网消息进行直播重连
+    //例如监听断网消息，用户根据断网消息进行直播重连   
+    //注意：直播重连请使用restartLiveStream，在网络带宽较低导致发送码率帧率降低时，可以调用这个接口重启直播，改善直播质量
+    //在网络断掉的时候（用户可以监听 MSG_RTMP_URL_ERROR 和 MSG_BAD_NETWORK_DETECT ），用户不可以立即调用改接口，而是应该在网络重新连接以后，主动调用这个接口。
+    //如果在网络没有重新连接便调用这个接口，直播将不会重启
 	@Override
 	public void handleMessage(int msg, Object object) {
 		  switch (msg) {
@@ -911,13 +992,22 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		    	  }
 		    	  break;
 		      }
+		      case MSG_START_PREVIEW_ERROR://视频预览出错，可能是获取不到camera的使用权限
+		      {
+		    	  //Log.i(TAG, "test: in handleMessage, MSG_START_PREVIEW_ERROR");
+		    	  break;
+		      }
+		      case MSG_AUDIO_RECORD_ERROR://音频采集出错，获取不到麦克风的使用权限
+		      {
+		    	  //Log.i(TAG, "test: in handleMessage, MSG_AUDIO_RECORD_ERROR");
+		    	  break;
+		      }
 		      case MSG_RTMP_URL_ERROR://断网消息
 		      {
 		    	  //Log.i(TAG, "test: in handleMessage, MSG_RTMP_URL_ERROR");
-
 		    	  break;
 		      }
-		      case MSG_URL_NOT_AUTH://直播URL非法
+		      case MSG_URL_NOT_AUTH://直播URL非法，URL格式不符合视频云要求
 		      {
 		    	  if(m_liveStreamingInit)
 		    	  {
@@ -967,13 +1057,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      }
 		      case MSG_QOS_TO_STOP_LIVESTREAMING://网络QoS极差，码率档次降到最低
 		      {
-		    	  //Log.i(TAG, "test: in handleMessage, MSG_QOS_TO_STOP_LIVESTREAMING");
-//		    	  m_tryToStopLivestreaming = true;
-//		    	  m_QoSToStopLivestreaming = true;
-//		  		  mLSMediaCapture.stopLiveStreaming();
+		    	  //Log.i(TAG, "test: in handleMessage, MSG_QOS_TO_STOP_LIVESTREAMING");		    	  
 		    	  break;
 		      }
-		      case MSG_HW_VIDEO_PACKET_ERROR:
+		      case MSG_HW_VIDEO_PACKET_ERROR://视频硬件编码出错反馈消息
 		      {
 		    	  if(m_liveStreamingOn)
 		    	  {
@@ -1073,12 +1160,12 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		    	  //Log.i(TAG, "test: in handleMessage, MSG_SEND_STATICS_LOG_FINISHED");
 		    	  break;
 		      }
-		      case MSG_SERVER_COMMAND_STOP_LIVESTREAMING:
+		      case MSG_SERVER_COMMAND_STOP_LIVESTREAMING://服务器下发停止直播的消息反馈，暂时不使用
 		      {
 		    	  //Log.i(TAG, "test: in handleMessage, MSG_SERVER_COMMAND_STOP_LIVESTREAMING");
 		    	  break;
 		      }
-		      case MSG_GET_STATICS_INFO:
+		      case MSG_GET_STATICS_INFO://获取统计信息的反馈消息
 		      {
 				  Message message = new Message();
 				  mStatistics = (Statistics) object;
@@ -1091,10 +1178,54 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	              message.setData(bundle);  
 	                  
 	              mHandler.sendMessage(message);
+	              break;
 		      }
+		      case MSG_BAD_NETWORK_DETECT://如果连续一段时间（10s）实际推流数据为0，会反馈这个错误消息
+		      {
+		    	  //Log.i(TAG, "test: in handleMessage, MSG_BAD_NETWORK_DETECT");
+		    	  break;
+		      }
+			  case MSG_SCREENSHOT_FINISHED://视频截图完成后的消息反馈
+			  {
+				  //Log.i(TAG, "test: in handleMessage, MSG_SCREENSHOT_FINISHED, buffer is " + (byte[]) object);
+				  getScreenShotByteBuffer((byte[]) object);
+
+				  break;
+			  }
+			  case MSG_SET_CAMERA_ID_ERROR://设置camera出错（对于只有一个摄像头的设备，如果调用了不存在的摄像头，会反馈这个错误消息）
+			  {
+				  //Log.i(TAG, "test: in handleMessage, MSG_SET_CAMERA_ID_ERROR");
+				  break;
+			  }
 		  }
-	}	
-	
+	}
+
+	//获取截屏图像的数据
+	//handleMessage(int, Object)方法获取SDK返回的截屏完成通知，以及在Object里的截图字节数组
+	public void getScreenShotByteBuffer(byte[] screenShotByteBuffer) {
+		FileOutputStream outStream = null;
+		String screenShotFilePath = mScreenShotFilePath + mScreenShotFileName;
+		if(screenShotFilePath != null) {
+			try {
+				if(screenShotFilePath != null) {
+
+					outStream = new FileOutputStream(String.format(screenShotFilePath));
+					outStream.write(screenShotByteBuffer);
+					outStream.close();
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+
+			}
+		}
+		mNetinfoIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
+		startService(mNetinfoIntent);
+	}
+
+
 	//Demo层视频缩放操作相关方法
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

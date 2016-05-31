@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/popup_window"
-    android:layout_width="320dp"
-    android:layout_height="500dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:layout_gravity="center_horizontal"
     android:layout_marginTop="10dp"
     android:background="@drawable/pop_window_stroke"
@@ -44,43 +44,10 @@
             android:src="@drawable/play" />
         
         <LinearLayout
-	        android:id="@+id/recordLayout"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_below="@+id/imageView1"
-	        android:orientation="horizontal" >
-	        
-            <Button
-                android:id="@+id/recordButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="25dp"
-                android:layout_weight="3"
-                android:text="录音说明" />
-
-            <TextView
-                android:id="@+id/recordLenth"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="right|center_vertical"
-                android:text="0" />
-
-            <Button
-                android:id="@+id/delButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginRight="25dp"
-                android:text="删除" />
-            
-        </LinearLayout>
-            
-        <LinearLayout
 	        android:id="@+id/introLayout"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        android:layout_below="@+id/recordLayout"
+	        android:layout_below="@+id/imageView1"
 	        android:orientation="vertical" >
 
 			<EditText
@@ -98,12 +65,27 @@
       
         </LinearLayout>
 
-        <Button
-            android:id="@+id/submitButton"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/buttonLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:text="提交" />
+            android:layout_below="@+id/introLayout"
+            android:orientation="horizontal" >
+
+	        <Button
+	            android:id="@+id/submitButton"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:layout_alignParentBottom="true"
+	            android:layout_centerHorizontal="true"
+	            android:text="提交" />
+        
+	        <Button
+                android:id="@+id/delButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="25dp"
+                android:text="删除" />
+	   </LinearLayout>
 
 </RelativeLayout>
