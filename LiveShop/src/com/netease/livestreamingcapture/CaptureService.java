@@ -1,8 +1,12 @@
 package com.netease.livestreamingcapture;
 
+import java.io.File;
+
 import android.app.Dialog;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -21,6 +25,7 @@ public class CaptureService extends Service {
 	//退出按钮
 	private ImageButton closeBtn;
 	private ImageView imgView;
+	private String imgFilePath;
 	private EditText introTxt;
 	private Button subBtn;
 	private Button delBtn;
@@ -48,13 +53,14 @@ public class CaptureService extends Service {
 	public void onCreate() {
 		// TODO 自动生成的方法存根
 		super.onCreate();
+		
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Bundle bundle = intent.getExtras();
 		String alertString = bundle.getString("alert");
-		
+		imgFilePath = bundle.getString("imgfile");
 		initWindow();
 		return START_NOT_STICKY;//super.onStartCommand(intent, flags, startId);
 	}
@@ -91,8 +97,16 @@ public class CaptureService extends Service {
         });
 		
 		imgView=(ImageView)view.findViewById(R.id.imageView1);
+		File imgFile = new File(imgFilePath);
+		if(imgFile.exists()){
+			Bitmap bm=BitmapFactory.decodeFile(imgFilePath);
+			imgView.setImageBitmap(bm);
+		}
+		
 		introTxt=(EditText)view.findViewById(R.id.introTxt);
+		
 		subBtn=(Button)view.findViewById(R.id.submitButton);
+		
 		
 		delBtn=(Button)view.findViewById(R.id.delButton);
 		delBtn.setOnClickListener(new OnClickListener(){

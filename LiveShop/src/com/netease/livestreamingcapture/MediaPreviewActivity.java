@@ -15,7 +15,9 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -123,8 +125,11 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     private int mWaterMarkPosY = 10;//视频水印坐标(Y)
     
     //视频截图相关变量
-    private String mScreenShotFilePath = "/sdcard/";//视频截图文件路径
-    private String mScreenShotFileName = "test.jpg";//视频截图文件名
+    private String mScreenShotFilePath = "/sdcard/liveshop/";//视频截图文件路径
+    private String configFilePath = "/sdcard/liveshop/";//配置文件保存位置
+    private int mScreenShotCount=0;//截图文件名计数
+    private String mScreenShotFileName = "LiveImg";//视频截图文件名
+    Properties p = new Properties();//根据配置文件生成的配置实例
 
     //查询摄像头支持的采集分辨率信息相关变量
     private Thread mCameraThread;
@@ -515,16 +520,16 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         photosBtn = (ImageButton)findViewById(R.id.photosBtn);
         photosBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
-        		mNetinfoIntent = new Intent(MediaPreviewActivity.this, PhotosService.class);
-       			startService(mNetinfoIntent);
+        		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, PhotosService.class);
+       			startService(mAlertServiceIntent);
         	}
         });
         
         orderBtn = (ImageButton)findViewById(R.id.orderBtn);
         orderBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
-        		mNetinfoIntent = new Intent(MediaPreviewActivity.this, OrderService.class);
-       			startService(mNetinfoIntent);
+        		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, OrderService.class);
+       			startService(mAlertServiceIntent);
         	}
         });
 //-------------------------------------------------------------------------------------
@@ -820,6 +825,101 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
         chatWebView.loadUrl("http://m.liepin.com");
+        
+        //读取截图文件计数配置文件
+        p=getConfig();
+        try{
+    		mScreenShotCount=Integer.parseInt(p.getProperty("mScreenShotCount"));
+
+        } catch (Exception e){
+        	Log.i(TAG, "配置文件取计数转数字失败");
+        	mScreenShotCount=0;
+        }
+        
+                
+        //根据日期设置截图路径
+        Date mDate=new Date();
+        DateFormat df=new SimpleDateFormat("yyyyMMdd");
+        File savePath = new File(mScreenShotFilePath + df.format(mDate));
+        if(!savePath.exists() && !savePath.isDirectory()){
+        	savePath.mkdir();
+        }
+        
+        
+        mScreenShotFilePath = mScreenShotFilePath + df.format(mDate) + "/";
+        
+        
+    }
+    
+    private Properties getConfig(){
+    	File configFile=new File(configFilePath+"config.properties");
+    	InputStream is =null;
+		Properties con = new Properties();
+		
+    	if(configFile.exists()){
+        	try {
+				is = new FileInputStream(configFile);
+				con.load(is);
+
+			} catch ( Exception e) {
+				// TODO 自动生成的 catch 块
+				e.printStackTrace();
+			} finally{
+				try {
+					is.close();
+				} catch (IOException e) {
+					// TODO 自动生成的 catch 块
+					e.printStackTrace();
+				}
+			}
+        	
+        }else{
+        	configInit();        	
+        }
+    	return con;
+    }
+    
+    private void configInit(){
+    	Properties con = new Properties();
+    	con.setProperty("mScreenShotCount", "0");
+    	FileOutputStream outStream = null;
+    	try {
+			outStream = new FileOutputStream(String.format(configFilePath+"config.properties"));
+			con.store(outStream, "init the mScreenShotCount");
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				outStream.close();
+			} catch (IOException e) {
+				// TODO 自动生成的 catch 块
+				e.printStackTrace();
+			}
+		}
+    }
+    
+    private void updateConfig(String key, String value){
+    	p.setProperty(key, value);
+    	FileOutputStream outStream = null;
+    	try {
+			outStream = new FileOutputStream(String.format(configFilePath+"config.properties"));
+			p.store(outStream, "update the "+key+" to "+value);
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				outStream.close();
+			} catch (IOException e) {
+				// TODO 自动生成的 catch 块
+				e.printStackTrace();
+			}
+		}
     }
 
 	@Override
@@ -1204,25 +1304,32 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	//handleMessage(int, Object)方法获取SDK返回的截屏完成通知，以及在Object里的截图字节数组
 	public void getScreenShotByteBuffer(byte[] screenShotByteBuffer) {
 		FileOutputStream outStream = null;
-		String screenShotFilePath = mScreenShotFilePath + mScreenShotFileName;
+		String screenShotFilePath = mScreenShotFilePath + mScreenShotFileName + mScreenShotCount+".jpg";
 		if(screenShotFilePath != null) {
 			try {
 				if(screenShotFilePath != null) {
 
 					outStream = new FileOutputStream(String.format(screenShotFilePath));
 					outStream.write(screenShotByteBuffer);
-					outStream.close();
+					mScreenShotCount++;
+					updateConfig("mScreenShotCount",String.valueOf(mScreenShotCount));
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} finally {
-
+				try {
+					outStream.close();
+				} catch (IOException e) {
+					// TODO 自动生成的 catch 块
+					e.printStackTrace();
+				}
 			}
 		}
-		mNetinfoIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
-		startService(mNetinfoIntent);
+		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
+		mAlertServiceIntent.putExtra("imgfile", screenShotFilePath);
+		startService(mAlertServiceIntent);
 	}
 
 
