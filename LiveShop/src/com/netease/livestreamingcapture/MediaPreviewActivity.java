@@ -38,6 +38,7 @@ import android.view.View.MeasureSpec;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -125,8 +126,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     private int mWaterMarkPosY = 10;//视频水印坐标(Y)
     
     //视频截图相关变量
-    private String mScreenShotFilePath = "/sdcard/liveshop/";//视频截图文件路径
-    private String configFilePath = "/sdcard/liveshop/";//配置文件保存位置
+    private String mScreenShotFilePath = "/sdcard/liveshop";//视频截图文件路径
+    //配置文件保存位置
+    private String configFilePath = "/sdcard/liveshop";
+    //private String configFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/liveshop/";
     private int mScreenShotCount=0;//截图文件名计数
     private String mScreenShotFileName = "LiveImg";//视频截图文件名
     Properties p = new Properties();//根据配置文件生成的配置实例
@@ -499,8 +502,8 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //网络信息按钮初始化
         networkInfoBtn = (ImageButton)findViewById(R.id.NetworkInfoBtn);
         networkInfoBtn.setOnClickListener(new OnClickListener() {
-           	public void onClick(View v)
-           	{    	
+           	public void onClick(View v)	{
+           		Log.i(TAG, "点击网络信息按钮");
            		mNetinfoIntent = new Intent(MediaPreviewActivity.this, NetInfoService.class);
        			startService(mNetinfoIntent);
        			mNetworkInfoServiceOn = true;
@@ -512,6 +515,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         captureBtn = (ImageButton)findViewById(R.id.captureBtn);
         captureBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
+        		Log.i(TAG, "点击截图按钮");
         		//发起截图请求，等待截图完毕返回通知时取得截屏Bitmap
         		mLSMediaCapture.enableScreenShot();
         	}
@@ -520,6 +524,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         photosBtn = (ImageButton)findViewById(R.id.photosBtn);
         photosBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
+        		Log.i(TAG, "点击图片列表按钮");
         		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, PhotosService.class);
        			startService(mAlertServiceIntent);
         	}
@@ -528,6 +533,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         orderBtn = (ImageButton)findViewById(R.id.orderBtn);
         orderBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
+        		Log.i(TAG, "点击订单列表按钮");
         		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, OrderService.class);
        			startService(mAlertServiceIntent);
         	}
@@ -807,7 +813,8 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
             }
 
             //6、初始化直播推流
-	        ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
+        	//----------------------------------
+	        //ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
 
 	        if(ret) {
 	        	m_liveStreamingInit = true;
@@ -824,7 +831,16 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
-        chatWebView.loadUrl("http://m.liepin.com");
+        chatWebView.loadUrl("http://baidu.com");
+        chatWebView.setWebViewClient(new WebViewClient(){
+        	@Override
+        	public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // TODO Auto-generated method stub
+                   //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
+                 view.loadUrl(url);
+                return true;
+            }
+        });
         
         //读取截图文件计数配置文件
         p=getConfig();
@@ -852,11 +868,13 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     }
     
     private Properties getConfig(){
+    	Log.i(TAG, "读取配置文件");
     	File configFile=new File(configFilePath+"config.properties");
     	InputStream is =null;
 		Properties con = new Properties();
 		
     	if(configFile.exists()){
+    		Log.i(TAG, "配置文件存在");
         	try {
 				is = new FileInputStream(configFile);
 				con.load(is);
@@ -874,18 +892,36 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 			}
         	
         }else{
-        	configInit();        	
+        	Log.i(TAG, "配置文件不存在，初始化");
+        	configInit();     
+        	con.setProperty("mScreenShotCount", "0");
         }
     	return con;
     }
     
     private void configInit(){
+    	Log.i(TAG, "初始化配置文件");
     	Properties con = new Properties();
     	con.setProperty("mScreenShotCount", "0");
     	FileOutputStream outStream = null;
+    	File file = new File(configFilePath);
+    	if (!file.exists()){
+    		Log.i(TAG, "新建文件夹");
+    		file.mkdir();
+    	}
+    	Log.i(TAG, "创建文件对象");
+    	file = new File(configFilePath+"/config.properties");
     	try {
-			outStream = new FileOutputStream(String.format(configFilePath+"config.properties"));
+/*    		
+    		if(!file.exists()){
+    			Log.i(TAG, "文件不存在，新建");
+    			file.createNewFile();
+    		}
+    		Log.i(TAG, "文件存在");*/
+			outStream = new FileOutputStream(file);
+			Log.i(TAG, "开始写入配置文件");
 			con.store(outStream, "init the mScreenShotCount");
+			Log.i(TAG, "写入配置文件完成");
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

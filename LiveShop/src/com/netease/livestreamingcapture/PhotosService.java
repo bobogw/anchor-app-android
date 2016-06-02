@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -77,6 +78,15 @@ public class PhotosService extends Service {
 
 		mAlertWebView = (WebView)view.findViewById(R.id.webViewPhotos); 
 		mAlertWebView.loadUrl("http://m.liepin.com");
+		mAlertWebView.setWebViewClient(new WebViewClient(){
+        	@Override
+        	public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // TODO Auto-generated method stub
+                   //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
+                 view.loadUrl(url);
+                return true;
+            }
+        });
 		
 		//退出按钮事件
 		closeBtn = (ImageButton)view.findViewById(R.id.closeBtn);
