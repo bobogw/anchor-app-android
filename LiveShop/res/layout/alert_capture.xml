@@ -61,7 +61,7 @@
 			    android:minLines="4"
 			    android:maxLines="4"
 			    android:scrollbars="vertical" 
-			    android:background="@android:drawable/edit_text" />
+			    android:hint="请输入物品说明..." />
       
         </LinearLayout>
 

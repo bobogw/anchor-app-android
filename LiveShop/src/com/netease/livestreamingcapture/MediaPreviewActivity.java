@@ -1305,6 +1305,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	public void getScreenShotByteBuffer(byte[] screenShotByteBuffer) {
 		FileOutputStream outStream = null;
 		String screenShotFilePath = mScreenShotFilePath + mScreenShotFileName + mScreenShotCount+".jpg";
+		Log.i(TAG,screenShotFilePath);
 		if(screenShotFilePath != null) {
 			try {
 				if(screenShotFilePath != null) {
@@ -1313,6 +1314,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 					outStream.write(screenShotByteBuffer);
 					mScreenShotCount++;
 					updateConfig("mScreenShotCount",String.valueOf(mScreenShotCount));
+					Log.i(TAG, "save img succed");
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
