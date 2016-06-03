@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -17,6 +18,8 @@ import android.widget.TextView;
 
 public class OrderService extends Service {
 	
+	private static final String TAG = "OrderService";
+
 	//退出按钮
 	private ImageButton closeBtn;
 	
@@ -48,9 +51,10 @@ public class OrderService extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Bundle bundle = intent.getExtras();
+		Log.i(TAG, "orderservice start");
+/*		Bundle bundle = intent.getExtras();
 		String alertString = bundle.getString("alert");
-		
+		*/
 		initWindow();
 		return START_NOT_STICKY;//super.onStartCommand(intent, flags, startId);
 	}
@@ -68,15 +72,16 @@ public class OrderService extends Service {
 	 * 初始化
 	 */
 	private void initWindow() {
+		Log.i(TAG, "initWindow");
 //		boolean bShowAlert = false;
 		mDialog = new Dialog(OrderService.this);
 		mDialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
-
+		
 		//得到容器，通过这个inflater来获得悬浮窗控件
 		inflater = LayoutInflater.from(getApplication());
 		// 获取浮动窗口视图所在布局
 		View view = inflater.inflate(R.layout.alert_order, null);
-
+		Log.i(TAG, "set WebView");
 		mAlertWebView = (WebView)view.findViewById(R.id.webViewOrder); 
 		mAlertWebView.loadUrl("http://m.liepin.com");
 		mAlertWebView.setWebViewClient(new WebViewClient(){

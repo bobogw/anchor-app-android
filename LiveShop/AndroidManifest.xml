@@ -64,7 +64,12 @@
         <service android:name="com.netease.livestreamingcapture.NetInfoService"/>
         <!-- 声明直播异常报警服务 -->
         <service android:name="com.netease.livestreamingcapture.AlertService"/>
-        
+        <!-- 声明订单显示服务 -->
+        <service android:name="com.netease.livestreamingcapture.OrderService"/>
+        <!-- 声明照片列表显示服务 -->
+        <service android:name="com.netease.livestreamingcapture.PhotosService"/>
+        <!-- 声明截图输入说明服务 -->
+        <service android:name="com.netease.livestreamingcapture.CaptureService"/>
         <receiver android:name=".StaticReceiver">  
             <intent-filter>  
                 <action android:name="com.netease.static" />  

@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +17,8 @@ import android.widget.TextView;
 
 public class PhotosService extends Service {
 	
+	private static final String TAG = "PhotosService";
+
 	//退出按钮
 	private ImageButton closeBtn;
 	
@@ -47,9 +50,10 @@ public class PhotosService extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Bundle bundle = intent.getExtras();
+		Log.i(TAG, "ophotosservice start");
+/*		Bundle bundle = intent.getExtras();
 		String alertString = bundle.getString("alert");
-		
+		*/
 		initWindow();
 		return START_NOT_STICKY;//super.onStartCommand(intent, flags, startId);
 	}
@@ -67,6 +71,7 @@ public class PhotosService extends Service {
 	 * 初始化
 	 */
 	private void initWindow() {
+		Log.i(TAG, "PhotosService initWindow");
 //		boolean bShowAlert = false;
 		mDialog = new Dialog(PhotosService.this);
 		mDialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
