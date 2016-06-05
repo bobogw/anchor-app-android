@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.webkit.WebView;
@@ -74,6 +75,7 @@ public class PhotosService extends Service {
 		Log.i(TAG, "PhotosService initWindow");
 //		boolean bShowAlert = false;
 		mDialog = new Dialog(PhotosService.this);
+		mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		mDialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
 
 		//得到容器，通过这个inflater来获得悬浮窗控件
