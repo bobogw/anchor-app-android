@@ -36,11 +36,15 @@ import org.json.JSONObject;
 
 import android.view.View.MeasureSpec;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -716,6 +720,20 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		else		
 		{
 			setContentView(R.layout.video_player_surface_view2);
+			final RelativeLayout videoLayout = (RelativeLayout)findViewById(R.id.videoLayout);
+			ViewTreeObserver vto = videoLayout.getViewTreeObserver();
+			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener(){
+				public void onGlobalLayout(){
+					videoLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+					Log.i(TAG, "video width="+videoLayout.getWidth());
+					Log.i(TAG, "video height="+videoLayout.getHeight());
+					LayoutParams params = videoLayout.getLayoutParams();
+					params.height=(int)videoLayout.getWidth()*3/4;
+					Log.i(TAG, "video height change.");
+					Log.i(TAG, "video height="+params.height);
+					videoLayout.setLayoutParams(params);
+				}
+			});
             mVideoView = (LiveSurfaceView) findViewById(R.id.videoview);
         }
 
