@@ -97,6 +97,9 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     private LiveSurfaceView mVideoView;
     
 	private boolean m_liveStreamingOn = false;
+	
+	//标记直播是否被主播暂停
+	private boolean m_liveStreamingPause=false;
 	private boolean m_liveStreamingInit = false;
 	private boolean m_liveStreamingInitFinished = false;
 	private boolean m_tryToStopLivestreaming = false;
@@ -476,13 +479,27 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         startPauseResumeBtn.setOnClickListener(new OnClickListener() {
         	public void onClick(View v)
         	{
-        		if(!m_liveStreamingOn)
+        		Log.i(TAG, "m_liveStreamingOn=" + m_liveStreamingOn);
+        		if(!m_liveStreamingOn && !m_liveStreamingPause)
         		{
+        			Log.i(TAG, "目前是没有开始直播状态，开始直播");
         		    if(mliveStreamingURL.isEmpty())
         			    return;
         		    
         		    startAV();  
         		    
+        			startPauseResumeBtn.setImageResource(R.drawable.pause);
+        		}else if(m_liveStreamingOn && !m_liveStreamingPause){
+        			Log.i(TAG, "目前是正在直播状态，暂停直播");
+        			mLSMediaCapture.pauseVideoPreview();
+        			m_liveStreamingOn=false;
+        			m_liveStreamingPause = true;
+        			startPauseResumeBtn.setImageResource(R.drawable.play);
+        		}else if(!m_liveStreamingOn && m_liveStreamingPause){
+        			Log.i(TAG, "目前是暂停直播状态，继续直播");
+        			mLSMediaCapture.restartLiveStream();
+        			m_liveStreamingOn=true;
+        			m_liveStreamingPause = false;
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
         		}
         	}
@@ -520,8 +537,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         captureBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Log.i(TAG, "点击截图按钮");
+        		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
+        		startService(mAlertServiceIntent);
         		//发起截图请求，等待截图完毕返回通知时取得截屏Bitmap
-        		mLSMediaCapture.enableScreenShot();
+        		//mLSMediaCapture.enableScreenShot();
         	}
         });
        
@@ -663,7 +682,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	//开始直播
 	private void startAV(){       
 		if(mLSMediaCapture != null && m_liveStreamingInitFinished) {
-			
+			Log.i(TAG, "开始直播");
 			//7、设置视频水印参数（可选）
 			if(!mHardWareEncEnable && mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO)
 			{
@@ -683,7 +702,8 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         //从直播设置页面获取推流URL和分辨率信息
         //alert1用于检测设备SDK版本是否符合开启滤镜要求，alert2用于检测设备的硬件编码模块（与滤镜相关）是否正常
-        mliveStreamingURL = getIntent().getStringExtra("mediaPath");
+        mliveStreamingURL = "rtmp://p1.live.126.net/live/9b9fcaae324249209109f06271024604?wsSecret=918b3c4dbad3e5500a3010c23dff93b7&wsTime=1465292112";
+        		//getIntent().getStringExtra("mediaPath");
         mVideoResolution = getIntent().getStringExtra("videoResolution");      
         mAlert1 = getIntent().getBooleanExtra("alert1", false);
         mAlert2 = getIntent().getBooleanExtra("alert2", false);
@@ -832,7 +852,8 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 
             //6、初始化直播推流
         	//----------------------------------
-	        //ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
+        	Log.i(TAG, "初始化直播推流");
+	        ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
 
 	        if(ret) {
 	        	m_liveStreamingInit = true;
@@ -1101,11 +1122,11 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		    	  break;
 		      }
 		      case MSG_START_LIVESTREAMING_ERROR://开始直播出错
-		      {
+		      {Log.i(TAG, "开始直播出错");
 		    	  break;
 		      }
 		      case MSG_STOP_LIVESTREAMING_ERROR://停止直播出错
-		      {
+		      {Log.i(TAG, "停止直播出错");
 		    	  if(m_liveStreamingOn)
 		    	  {
 	      		      Bundle bundle = new Bundle();
@@ -1341,14 +1362,14 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      }
 			  case MSG_SCREENSHOT_FINISHED://视频截图完成后的消息反馈
 			  {
-				  //Log.i(TAG, "test: in handleMessage, MSG_SCREENSHOT_FINISHED, buffer is " + (byte[]) object);
+				  Log.i(TAG, "test: in handleMessage, MSG_SCREENSHOT_FINISHED, buffer is " + (byte[]) object);
 				  getScreenShotByteBuffer((byte[]) object);
 
 				  break;
 			  }
 			  case MSG_SET_CAMERA_ID_ERROR://设置camera出错（对于只有一个摄像头的设备，如果调用了不存在的摄像头，会反馈这个错误消息）
 			  {
-				  //Log.i(TAG, "test: in handleMessage, MSG_SET_CAMERA_ID_ERROR");
+				  Log.i(TAG, "test: in handleMessage, MSG_SET_CAMERA_ID_ERROR");
 				  break;
 			  }
 		  }

@@ -26,16 +26,17 @@
             android:id="@+id/RTMP_URL"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
+            android:layout_marginTop="15dp"
             android:background="@drawable/shape"
+            android:hint="请输入直播流地址：URL"
+            android:paddingBottom="13dp"
             android:paddingLeft="13dp"
-			android:paddingTop="13dp" 
-			android:paddingBottom="13dp" 
-			android:textColor="#333333"
-            android:textSize="24dp"
-            android:hint="请输入直播流地址：URL" />
+            android:paddingTop="13dp"
+            android:text="rtmp://p1.live.126.net/live/9b9fcaae324249209109f06271024604?wsSecret=918b3c4dbad3e5500a3010c23dff93b7&amp;wsTime=1465292112"
+            android:textColor="#333333"
+            android:textSize="24dp" />
     
         <LinearLayout
             android:id="@+id/radioButtonLayout"
@@ -124,7 +125,7 @@
             android:textSize="28dp"
             android:textColor="#ffffff"
             android:background="@drawable/enter_live"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="20dp"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
             android:text="进 入 直 播" />

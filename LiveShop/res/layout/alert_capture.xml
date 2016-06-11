@@ -18,7 +18,7 @@
         <TextView
             android:id="@+id/AlertTitle"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
+            android:layout_height="45dp"
             android:gravity="center"
             android:text="添加说明"
             android:textColor="#ffffff"
