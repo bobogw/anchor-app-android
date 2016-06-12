@@ -10,6 +10,5 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="android-support-v7-appcompat/libs"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/jre8/lib/rt.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
