@@ -198,16 +198,21 @@ public class CaptureService extends Service {
 		Log.i(TAG, "封装好药提交的内容，添加进提交请求");
 		postRequest.setEntity(reqEntity);
 		Log.i(TAG, "执行信息发送");
+		HttpResponse response=null;
 		try {
-			HttpResponse response = httpClient.execute(postRequest);
+			response = httpClient.execute(postRequest);
 			if(response.getStatusLine().getStatusCode()==HttpStatus.SC_OK){
 				Log.i(TAG,"upload succed");
 				returnStr="succed";
+			}else{
+				Log.i(TAG, "response statuscode=" + response.getStatusLine().getStatusCode());
+				returnStr="error";
 			}
 
 		} catch (Exception e) {
 			// TODO 自动生成的 catch 块
-			e.printStackTrace();
+			Log.i(TAG, response.toString());
+			//e.printStackTrace();
 			returnStr="error";
 		}
 		
@@ -236,12 +241,13 @@ public class CaptureService extends Service {
 	        Log.i(TAG, "请求结果为-->" + val);  
 	        if(val.equals("succed")){
 	        	titleTxt.setText("上传成功");
-	        	
+	        	delBtn.setText("返回");
 	        }else if(val.equals("error")){
 	        	titleTxt.setText("上传失败");
 	        	subBtn.setEnabled(true);
+	        	subBtn.setText("重试");
 	        }
-	    }  
+	    }
 	};  
 	
 	

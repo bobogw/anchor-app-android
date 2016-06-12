@@ -491,13 +491,15 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
         		}else if(m_liveStreamingOn && !m_liveStreamingPause){
         			Log.i(TAG, "目前是正在直播状态，暂停直播");
-        			mLSMediaCapture.pauseVideoPreview();
+        			//mLSMediaCapture.resumeVideoEncode();
+        			mLSMediaCapture.stopVideoLiveStream();
         			m_liveStreamingOn=false;
         			m_liveStreamingPause = true;
         			startPauseResumeBtn.setImageResource(R.drawable.play);
         		}else if(!m_liveStreamingOn && m_liveStreamingPause){
         			Log.i(TAG, "目前是暂停直播状态，继续直播");
-        			mLSMediaCapture.restartLiveStream();
+        			//mLSMediaCapture.stopVideoEncode();
+        			mLSMediaCapture.startVideoLiveStream();
         			m_liveStreamingOn=true;
         			m_liveStreamingPause = false;
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
