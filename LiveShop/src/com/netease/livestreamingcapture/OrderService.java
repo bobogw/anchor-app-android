@@ -104,15 +104,16 @@ public class OrderService extends Service {
         	}
         });
 		
+		mDialog.setContentView(view);
+		mDialog.setCanceledOnTouchOutside(true);
+		mDialog.show();
 		
-		// 添加悬浮窗的视图
-//		if(bShowAlert) {
-		    mDialog.setContentView(view);
-//		    mDialog.setTitle("警告");
-		
-		    mDialog.setCanceledOnTouchOutside(true);
-		    mDialog.show();
-//		}
+		Window win = mDialog.getWindow();
+		win.getDecorView().setPadding(0, 0, 0, 0);
+		WindowManager.LayoutParams lp = win.getAttributes();
+        lp.width = WindowManager.LayoutParams.FILL_PARENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        win.setAttributes(lp);
 	}
 
 }

@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center_horizontal"
-    android:layout_marginTop="10dp"
     android:background="@drawable/pop_window_stroke"
     android:orientation="vertical" >
 
@@ -23,7 +22,7 @@
             android:text="添加说明"
             android:textColor="#ffffff"
             android:background="#000000"  
-            android:textSize="34dp" />
+            android:textSize="20dp" />
         <ImageButton
 		    android:id="@+id/closeBtn"
 		    android:layout_width="wrap_content"
@@ -38,7 +37,7 @@
         <ImageView
             android:id="@+id/imageView1"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/titleLayout"
             android:layout_centerHorizontal="true"
             android:src="@drawable/play" />

@@ -133,7 +133,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     private int mWaterMarkPosY = 10;//视频水印坐标(Y)
     
     //视频截图相关变量
-    private String mScreenShotFilePath = "/sdcard/liveshop";//视频截图文件路径
+    private String mScreenShotFilePath = "/sdcard/liveshop/";//视频截图文件路径
     //配置文件保存位置
     private String configFilePath = "/sdcard/liveshop";
     //private String configFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/liveshop/";
@@ -233,6 +233,26 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		dialog.show();
 	}
 	
+    /**
+     * 显示不能截取图片提示框
+     */
+    private void showAlertDialog3() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		final AlertDialog dialog = builder.create();
+		View view = View.inflate(this, R.layout.alert_dialog3, null);
+
+		TextView yes = (TextView) view.findViewById(R.id.tv_yes);
+		yes.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				dialog.dismiss();
+			}
+		});
+		dialog.setView(view, 0, 0, 0, 0);
+		dialog.show();
+	}
+    
+    
     //查询Android摄像头支持的采样分辨率相关方法（1）
 	public void openCamera() {
 		final Semaphore lock = new Semaphore(0);
@@ -539,10 +559,16 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         captureBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Log.i(TAG, "点击截图按钮");
-        		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
-        		startService(mAlertServiceIntent);
+        		//mAlertServiceIntent = new Intent(MediaPreviewActivity.this, CaptureService.class);
+        		//startService(mAlertServiceIntent);
         		//发起截图请求，等待截图完毕返回通知时取得截屏Bitmap
-        		//mLSMediaCapture.enableScreenShot();
+        		if(m_liveStreamingOn && !m_liveStreamingPause){
+        			Log.i(TAG, "直播中，可以截图");
+        			mLSMediaCapture.enableScreenShot();
+        		}else{
+        			showAlertDialog3();
+        		}
+        		
         	}
         });
        
@@ -742,7 +768,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		else		
 		{
 			setContentView(R.layout.video_player_surface_view2);
-			final RelativeLayout videoLayout = (RelativeLayout)findViewById(R.id.videoLayout);
+/*			final RelativeLayout videoLayout = (RelativeLayout)findViewById(R.id.videoLayout);
 			ViewTreeObserver vto = videoLayout.getViewTreeObserver();
 			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener(){
 				public void onGlobalLayout(){
@@ -755,7 +781,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 					Log.i(TAG, "video height="+params.height);
 					videoLayout.setLayoutParams(params);
 				}
-			});
+			});*/
             mVideoView = (LiveSurfaceView) findViewById(R.id.videoview);
         }
 
@@ -830,6 +856,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
             }
 		    else
 		    {
+		    	Log.i(TAG, "Video View size = " + mVideoPreviewWidth + "*" +mVideoPreviewHeight);
 		        mVideoView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
 		    }
         }
@@ -872,7 +899,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
-        chatWebView.loadUrl("http://baidu.com");
+        chatWebView.loadUrl("http://m.liepin.com");
         chatWebView.setWebViewClient(new WebViewClient(){
         	@Override
         	public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -910,7 +937,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     
     private Properties getConfig(){
     	Log.i(TAG, "读取配置文件");
-    	File configFile=new File(configFilePath+"config.properties");
+    	File configFile=new File(configFilePath+"/config.properties");
     	InputStream is =null;
 		Properties con = new Properties();
 		
@@ -982,7 +1009,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     	p.setProperty(key, value);
     	FileOutputStream outStream = null;
     	try {
-			outStream = new FileOutputStream(String.format(configFilePath+"config.properties"));
+			outStream = new FileOutputStream(String.format(configFilePath+"/config.properties"));
 			p.store(outStream, "update the "+key+" to "+value);
 
 		} catch (FileNotFoundException e) {
@@ -1476,5 +1503,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     public void onBackPressed() {  
         super.onBackPressed();  
         m_tryToStopLivestreaming = true;      
-    }  
+    }
+	
+
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.View.MeasureSpec;
@@ -33,7 +34,8 @@ public class LiveSurfaceView extends lsSurfaceView {
     }
 
 	public void setPreviewSize(int width, int height) {
-	    int screenW = getResources().getDisplayMetrics().widthPixels;
+		Log.i("lSurfaceView", "setPreviewSize begin. width="+width+"  height="+height);
+/*	    int screenW = getResources().getDisplayMetrics().widthPixels;
 	    int screenH = getResources().getDisplayMetrics().heightPixels;
 	    if (screenW < screenH) {
 		    previewWidth = width < height ? width : height;
@@ -42,15 +44,20 @@ public class LiveSurfaceView extends lsSurfaceView {
 	    else {
 		    previewWidth = width > height ? width : height;
 		    previewHeight = width <= height ? width : height;
-	    }
+	    }*/
+		previewWidth=width;
+		previewHeight=height;
 	    ratio = previewHeight / (float) previewWidth;
-	    previewWidth = screenW;
-	    previewHeight = screenH;
+	    Log.i("lSurfaceView", "previewWidth="+previewWidth+"  previewHeight="+previewHeight+"  ratio="+ratio);
+	    //previewWidth = screenW;
+	    //previewHeight = screenH;
+		Log.i("lSurfaceView", "setPreviewSize end, call requestLayout.");
 	    requestLayout();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    	Log.i("lSurfaceView", "override onMeasure begin");
 	    int previewW     = MeasureSpec.getSize(widthMeasureSpec);
 	    int previewWMode = MeasureSpec.getMode(widthMeasureSpec);
 	    int previewH     = MeasureSpec.getSize(heightMeasureSpec);
@@ -62,6 +69,17 @@ public class LiveSurfaceView extends lsSurfaceView {
 	    int defineWidth  = 0;
 	    int defineHeight = 0;
 
+	    Log.i("lSurfaceView", "previewW="+previewW+"  previewH="+previewH);
+	    if(previewWMode== MeasureSpec.UNSPECIFIED){
+	    	Log.i("lSurfaceView", "previewWMode=UNSPECIFIED");
+	    }else if(previewWMode== MeasureSpec.EXACTLY){
+	    	Log.i("lSurfaceView", "previewWMode=EXACTLY");
+	    }else{
+	    	Log.i("lSurfaceView", "previewWMode=AT_MOST");
+	    }
+	    
+	    Log.i("lSurfaceView", "previewWidth="+previewWidth+"  previewHeight="+previewHeight);
+	    
 	    if (previewWidth > 0 && previewHeight > 0) {
 		    measuredWidth = defineWidth(previewW, previewWMode);
 		    
@@ -74,7 +92,7 @@ public class LiveSurfaceView extends lsSurfaceView {
 		    defineWidth = defineWidth(previewW, previewWMode);
 		    defineHeight = defineHeight(previewH, previewHMode);
 
-		    if(defineHeight*1.0/defineWidth > ratio)
+/*		    if(defineHeight*1.0/defineWidth > ratio)
 		    {
 			    measuredHeight = defineHeight(previewH, previewHMode);
 			    measuredWidth = (int) (measuredHeight/ratio);
@@ -84,7 +102,8 @@ public class LiveSurfaceView extends lsSurfaceView {
 			    measuredWidth = defineWidth(previewW, previewWMode);
 			    measuredHeight = (int) (measuredWidth*ratio);
 		    }
-
+*/
+		    Log.i("lSurfaceView", "width and height = " + measuredWidth + "*" + measuredHeight);
 		    setMeasuredDimension(measuredWidth, measuredHeight);
 	    }
 	    else {

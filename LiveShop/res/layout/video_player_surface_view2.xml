@@ -1,12 +1,13 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
-
+    android:layout_height="match_parent">
+    
     <RelativeLayout
         android:id="@+id/videoLayout"
         android:layout_width="match_parent"
-        android:layout_height="260dp"
+        android:layout_height="240dp"
         android:layout_alignParentTop="true"
         android:background="#000000" >
 
@@ -26,7 +27,7 @@
 	        <ImageButton
 	            android:id="@+id/StartStopAVBtn"
 	            android:layout_width="0dp"
-	            android:layout_height="50dp"
+	            android:layout_height="45dp"
 	            android:gravity="center_horizontal"
 	            android:layout_gravity="center_horizontal"
 	            android:layout_weight="1"
@@ -120,5 +121,4 @@
     </LinearLayout>
 
     
-      
-</RelativeLayout>
+</LinearLayout>

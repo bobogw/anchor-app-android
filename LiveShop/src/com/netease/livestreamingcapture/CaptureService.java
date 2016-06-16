@@ -88,9 +88,9 @@ public class CaptureService extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-//		Bundle bundle = intent.getExtras();
-//		String alertString = bundle.getString("alert");
-//		imgFilePath = bundle.getString("imgfile");
+		Bundle bundle = intent.getExtras();
+		String alertString = bundle.getString("alert");
+		imgFilePath = bundle.getString("imgfile");
 		initWindow();
 		return START_NOT_STICKY;//super.onStartCommand(intent, flags, startId);
 	}
@@ -124,6 +124,7 @@ public class CaptureService extends Service {
 
 		titleTxt=(TextView)view.findViewById(R.id.AlertTitle);
 		
+		
 		//退出按钮事件
 		closeBtn = (ImageButton)view.findViewById(R.id.closeBtn);
 		closeBtn.setOnClickListener(new OnClickListener(){
@@ -133,13 +134,14 @@ public class CaptureService extends Service {
         });
 		
 		imgView=(ImageView)view.findViewById(R.id.imageView1);
-/*		File imgFile = new File(imgFilePath);
+		File imgFile = new File(imgFilePath);
 		if(imgFile.exists()){
 			Bitmap bm=BitmapFactory.decodeFile(imgFilePath);
 			imgView.setImageBitmap(bm);
-		}*/
+		}
 		
 		introTxt=(EditText)view.findViewById(R.id.introTxt);
+		introTxt.setText(imgFilePath);
 		
 		//发送按钮，按下后POST方式发送图片和说明文本到服务器
 		subBtn=(Button)view.findViewById(R.id.submitButton);

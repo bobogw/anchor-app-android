@@ -14,10 +14,10 @@
         <TextView
             android:id="@+id/textView1"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
+            android:layout_height="45dp"
             android:layout_gravity="center_horizontal"
             android:gravity="center"
-            android:textSize="34dp"
+            android:textSize="20dp"
             android:textColor="#ffffff"
             android:background="#000000"           
             android:text="直播设置" />
@@ -36,7 +36,7 @@
             android:paddingTop="13dp"
             android:text="rtmp://p1.live.126.net/live/9b9fcaae324249209109f06271024604?wsSecret=918b3c4dbad3e5500a3010c23dff93b7&amp;wsTime=1465292112"
             android:textColor="#333333"
-            android:textSize="24dp" />
+            android:textSize="20dp" />
     
         <LinearLayout
             android:id="@+id/radioButtonLayout"
@@ -63,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="标清"
-                    android:textSize="25dp" >
+                    android:textSize="20dp" >
                
                 </RadioButton>    
             </RadioGroup>
@@ -82,7 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="流畅"
-                    android:textSize="25dp" />
+                    android:textSize="20dp" />
  
             </RadioGroup>
          </LinearLayout>
@@ -111,7 +111,7 @@
                     android:layout_height="wrap_content" 
                     android:layout_weight="1"
                     android:id="@+id/NormalModeBtn" 
-                    android:textSize="25dp"
+                    android:textSize="20dp"
                     android:text="普通模式">          
                 </RadioButton> 
             </RadioGroup>
@@ -121,8 +121,8 @@
          <Button
             android:id="@+id/StartAVBtn"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:textSize="28dp"
+            android:layout_height="50dp"
+            android:textSize="22dp"
             android:textColor="#ffffff"
             android:background="@drawable/enter_live"
             android:layout_marginTop="20dp"
