@@ -899,7 +899,9 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
+        chatWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         chatWebView.loadUrl("http://m.liepin.com");
+        chatWebView.getSettings().setJavaScriptEnabled(true);
         chatWebView.setWebViewClient(new WebViewClient(){
         	@Override
         	public boolean shouldOverrideUrlLoading(WebView view, String url) {
