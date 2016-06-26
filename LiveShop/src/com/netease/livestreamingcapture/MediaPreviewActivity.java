@@ -50,6 +50,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.Size;
@@ -100,6 +103,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	
 	//标记直播是否被主播暂停
 	private boolean m_liveStreamingPause=false;
+	
 	private boolean m_liveStreamingInit = false;
 	private boolean m_liveStreamingInitFinished = false;
 	private boolean m_tryToStopLivestreaming = false;
@@ -199,6 +203,9 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
   //-------------------------------------------------------------------    
     //添加聊天webview
     private WebView chatWebView;
+    
+    //添加状态信息显示
+    private TextView infoTxt;
     
     //提示用户不能使用滤镜功能的对话框
     private void showAlertDialog1() {
@@ -505,7 +512,6 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         			Log.i(TAG, "目前是没有开始直播状态，开始直播");
         		    if(mliveStreamingURL.isEmpty())
         			    return;
-        		    
         		    startAV();  
         		    
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
@@ -515,6 +521,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         			mLSMediaCapture.stopVideoLiveStream();
         			m_liveStreamingOn=false;
         			m_liveStreamingPause = true;
+        			infoTxt.setText("直播暂停");
         			startPauseResumeBtn.setImageResource(R.drawable.play);
         		}else if(!m_liveStreamingOn && m_liveStreamingPause){
         			Log.i(TAG, "目前是暂停直播状态，继续直播");
@@ -522,6 +529,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         			mLSMediaCapture.startVideoLiveStream();
         			m_liveStreamingOn=true;
         			m_liveStreamingPause = false;
+        			infoTxt.setText("直播中");
         			startPauseResumeBtn.setImageResource(R.drawable.pause);
         		}
         	}
@@ -576,6 +584,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         photosBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Log.i(TAG, "点击图片列表按钮");
+        		//resetLive();
         		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, PhotosService.class);
        			startService(mAlertServiceIntent);
         	}
@@ -585,6 +594,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         orderBtn.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Log.i(TAG, "点击订单列表按钮");
+        		//restartLive();
         		mAlertServiceIntent = new Intent(MediaPreviewActivity.this, OrderService.class);
        			startService(mAlertServiceIntent);
         	}
@@ -720,9 +730,152 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 			//8、开始直播
 		    mLSMediaCapture.startLiveStreaming();
 		    m_liveStreamingOn = true;
+		    infoTxt.setText("直播中");
 		}
 	}
+	
+	/**
+	 * 在断网之后重置直播
+	 */
+	private void resetLive(){
+		//关闭直播
+		if(m_liveStreamingInit) {
+			m_liveStreamingInit = false;
+		}
+		
+		//Demo层网络信息显示操作的销毁
+        if(mNetworkInfoServiceOn) {
+        	Log.i(TAG, "mNetworkInfoServiceOn == true");
+            mNetInfoIntent.putExtra("frameRate", 0);  
+        	mNetInfoIntent.putExtra("bitRate", 0);
+      	    mNetInfoIntent.putExtra("resolution", 2);
+         
+            sendBroadcast(mNetInfoIntent);  
 
+            stopService(mNetinfoIntent); 
+            mNetworkInfoServiceOn = false;
+        }
+        
+        //Demo层报警信息操作的销毁
+        if(mAlertServiceOn) {
+        	Log.i(TAG, "mAlertServiceOn == true");
+        	mAlertServiceIntent = new Intent(MediaPreviewActivity.this, AlertService.class);
+            stopService(mAlertServiceIntent); 
+            mAlertServiceOn = false;
+        }
+        
+        //停止直播调用相关API接口
+		if(mLSMediaCapture != null) {
+			Log.i(TAG, "mLSMediaCapture != null");
+			//停止直播，释放资源
+			mLSMediaCapture.stopLiveStreaming();
+/*			try{
+				Thread.sleep(20000);
+			}catch(Exception e){
+				Log.i(TAG, "sleep error");
+			}*/
+			
+			//如果音视频或者单独视频直播，需要关闭视频预览
+/*			if(m_startVideoCamera) {
+				Log.i(TAG, "m_startVideoCamera == true");
+				mLSMediaCapture.stopVideoPreview();
+				mLSMediaCapture.destroyVideoPreview();
+			}*/
+
+			//mLSMediaCapture = null;
+			
+  	        //mIntentLiveStreamingStopFinished.putExtra("LiveStreamingStopFinished", 2);   
+            //sendBroadcast(mIntentLiveStreamingStopFinished); 
+		}else if(!m_liveStreamingInitFinished) {
+			Log.i(TAG, "m_liveStreamingInitFinished == false");
+  	        mIntentLiveStreamingStopFinished.putExtra("LiveStreamingStopFinished", 1);  
+            sendBroadcast(mIntentLiveStreamingStopFinished);  
+		}
+
+		if(m_liveStreamingOn) {
+		    m_liveStreamingOn = false;
+		}
+		m_liveStreamingPause = false;
+		//按钮恢复成等待播放状态
+		startPauseResumeBtn.setImageResource(R.drawable.play);
+	}
+
+	/**
+	 * 重置直播之后重新开始
+	 */
+	private void restartLive(){
+		mLSMediaCapture.restartLiveStream();
+		m_liveStreamingOn=true;
+		m_liveStreamingPause = false;
+		startPauseResumeBtn.setImageResource(R.drawable.pause);
+		
+/*	    //1、创建直播实例
+        mLSMediaCapture = new lsMediaCapture(this, mContext, mVideoPreviewWidth, mVideoPreviewHeight);
+
+        //2、设置直播参数
+    	paraSet();
+    	
+        //3、设置日志级别和日志文件路径
+    	getLogPath();
+        if(mLSMediaCapture != null) {
+    	    mLSMediaCapture.setTraceLevel(mLogLevel, mLogPath);
+        }
+        
+        //4、设置视频预览参数
+        if(mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO) 
+        {
+		    if(mHardWareEncEnable)
+		    {
+		        mCameraSurfaceView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
+            }
+		    else
+		    {
+		    	Log.i(TAG, "Video View size = " + mVideoPreviewWidth + "*" +mVideoPreviewHeight);
+		        mVideoView.setPreviewSize(mVideoPreviewWidth, mVideoPreviewHeight);
+		    }
+        }
+        
+        if(mLSMediaCapture != null) {
+        	boolean ret = false;
+
+        	//5、开启视频预览
+        	if(mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_AV || mLSLiveStreamingParaCtx.eOutStreamType.outputStreamType == HAVE_VIDEO) 
+            {
+                if(mHardWareEncEnable)
+			    {
+			        mLSMediaCapture.startVideoPreviewOpenGL(mCameraSurfaceView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
+                }
+			    else
+			    {
+			        mLSMediaCapture.startVideoPreview(mVideoView, mLSLiveStreamingParaCtx.sLSVideoParaCtx.cameraPosition.cameraPosition);
+			    }
+                
+                m_startVideoCamera = true;
+            }
+
+            //6、初始化直播推流
+        	//----------------------------------
+        	Log.i(TAG, "初始化直播推流");
+	        ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
+
+	        Log.i(TAG, "ret==" + ret);
+	        if(ret) {
+	        	m_liveStreamingInit = true;
+	        	m_liveStreamingInitFinished = true;
+	        }
+	        else {
+	        	m_liveStreamingInit = true;
+	        	m_liveStreamingInitFinished = false;
+	        }
+        }
+		startAV();
+		m_liveStreamingOn=true;
+		m_liveStreamingPause = false;
+		startPauseResumeBtn.setImageResource(R.drawable.pause);*/
+	}
+	
+	
+	
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -730,7 +883,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         //从直播设置页面获取推流URL和分辨率信息
         //alert1用于检测设备SDK版本是否符合开启滤镜要求，alert2用于检测设备的硬件编码模块（与滤镜相关）是否正常
-        mliveStreamingURL = "rtmp://p1.live.126.net/live/9b9fcaae324249209109f06271024604?wsSecret=918b3c4dbad3e5500a3010c23dff93b7&wsTime=1465292112";
+        mliveStreamingURL = "rtmp://p587d8ed5.live.126.net/live/ef1b980b1bbf43c4b13004afd5f23843?wsSecret=73cd8144125394f4daf69540255f848e&wsTime=1466684569";
         		//getIntent().getStringExtra("mediaPath");
         mVideoResolution = getIntent().getStringExtra("videoResolution");      
         mAlert1 = getIntent().getBooleanExtra("alert1", false);
@@ -768,7 +921,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		else		
 		{
 			setContentView(R.layout.video_player_surface_view2);
-/*			final RelativeLayout videoLayout = (RelativeLayout)findViewById(R.id.videoLayout);
+			final RelativeLayout videoLayout = (RelativeLayout)findViewById(R.id.videoLayout);
 			ViewTreeObserver vto = videoLayout.getViewTreeObserver();
 			vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener(){
 				public void onGlobalLayout(){
@@ -781,7 +934,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 					Log.i(TAG, "video height="+params.height);
 					videoLayout.setLayoutParams(params);
 				}
-			});*/
+			});
             mVideoView = (LiveSurfaceView) findViewById(R.id.videoview);
         }
 
@@ -894,6 +1047,9 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	        }
         }
 		
+        //设置信息提示
+        infoTxt=(TextView)findViewById(R.id.infoTxt);
+        
         //Demo控件的初始化
         buttonInit();
         
@@ -1210,7 +1366,25 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      }
 		      case MSG_RTMP_URL_ERROR://断网消息
 		      {
-		    	  //Log.i(TAG, "test: in handleMessage, MSG_RTMP_URL_ERROR");
+		    	  Log.i(TAG, "test: in handleMessage, MSG_RTMP_URL_ERROR");
+		    	  infoTxt.setText("网络中断，重新连接中...");
+		    	  startPauseResumeBtn.setEnabled(false);
+		    	  //延迟5秒后重新开始直播
+		    	  new Handler().postDelayed(new Runnable(){  
+		                public void run() {  
+		                //execute the task  
+		                	mLSMediaCapture.restartLiveStream();
+		                	startPauseResumeBtn.setEnabled(true);
+		                	if(m_liveStreamingOn && !m_liveStreamingPause){
+			                	infoTxt.setText("直播中");
+		                	}else if(!m_liveStreamingOn && m_liveStreamingPause){
+			                	infoTxt.setText("暂停直播");
+		                	}else if(!m_liveStreamingOn && !m_liveStreamingPause){
+		                		infoTxt.setText("直播未开始");
+		                	}
+		                }
+		             }, 5000); 
+		    	  
 		    	  break;
 		      }
 		      case MSG_URL_NOT_AUTH://直播URL非法，URL格式不符合视频云要求
@@ -1263,7 +1437,21 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      }
 		      case MSG_QOS_TO_STOP_LIVESTREAMING://网络QoS极差，码率档次降到最低
 		      {
-		    	  //Log.i(TAG, "test: in handleMessage, MSG_QOS_TO_STOP_LIVESTREAMING");		    	  
+		    	  Log.i(TAG, "test: in handleMessage, MSG_QOS_TO_STOP_LIVESTREAMING");
+		    	  infoTxt.setText("网络状态差，降低码率");
+		    	  //延迟3秒后再看网络情况
+		    	  new Handler().postDelayed(new Runnable(){  
+		                public void run() {  
+		                //execute the task  
+		                	if(m_liveStreamingOn && !m_liveStreamingPause){
+			                	infoTxt.setText("直播中");
+		                	}else if(!m_liveStreamingOn && m_liveStreamingPause){
+			                	infoTxt.setText("暂停直播");
+		                	}else if(!m_liveStreamingOn && !m_liveStreamingPause){
+		                		infoTxt.setText("直播未开始");
+		                	}
+		                }
+		             }, 3000); 
 		    	  break;
 		      }
 		      case MSG_HW_VIDEO_PACKET_ERROR://视频硬件编码出错反馈消息
@@ -1412,12 +1600,22 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		FileOutputStream outStream = null;
 		String screenShotFilePath = mScreenShotFilePath + mScreenShotFileName + mScreenShotCount+".jpg";
 		Log.i(TAG,screenShotFilePath);
+		//处理竖屏截图，图片旋转90度问题
+		Bitmap sourceBitmap=BitmapFactory.decodeByteArray(screenShotByteBuffer, 0, screenShotByteBuffer.length);
+		Matrix m = new Matrix();
+		//设置旋转方式，让图片已自己中心点，顺时针旋转90度
+	    m.setRotate(90,(float) sourceBitmap.getWidth() / 2, (float) sourceBitmap.getHeight() / 2);
+	    //对整张图片（从0,0到width,height）做旋转
+	    Bitmap rotateBitmap = Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), m, true);
+		
 		if(screenShotFilePath != null) {
 			try {
 				if(screenShotFilePath != null) {
 
 					outStream = new FileOutputStream(String.format(screenShotFilePath));
-					outStream.write(screenShotByteBuffer);
+					rotateBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+					outStream.flush();
+					//outStream.write(screenShotByteBuffer);
 					mScreenShotCount++;
 					updateConfig("mScreenShotCount",String.valueOf(mScreenShotCount));
 					Log.i(TAG, "save img succed");

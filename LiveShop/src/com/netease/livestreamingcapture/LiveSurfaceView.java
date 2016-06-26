@@ -35,7 +35,7 @@ public class LiveSurfaceView extends lsSurfaceView {
 
 	public void setPreviewSize(int width, int height) {
 		Log.i("lSurfaceView", "setPreviewSize begin. width="+width+"  height="+height);
-/*	    int screenW = getResources().getDisplayMetrics().widthPixels;
+	    int screenW = getResources().getDisplayMetrics().widthPixels;
 	    int screenH = getResources().getDisplayMetrics().heightPixels;
 	    if (screenW < screenH) {
 		    previewWidth = width < height ? width : height;
@@ -44,14 +44,12 @@ public class LiveSurfaceView extends lsSurfaceView {
 	    else {
 		    previewWidth = width > height ? width : height;
 		    previewHeight = width <= height ? width : height;
-	    }*/
-		previewWidth=width;
-		previewHeight=height;
+	    }
 	    ratio = previewHeight / (float) previewWidth;
-	    Log.i("lSurfaceView", "previewWidth="+previewWidth+"  previewHeight="+previewHeight+"  ratio="+ratio);
-	    //previewWidth = screenW;
-	    //previewHeight = screenH;
-		Log.i("lSurfaceView", "setPreviewSize end, call requestLayout.");
+	    //Log.i("lSurfaceView", "previewWidth="+previewWidth+"  previewHeight="+previewHeight+"  ratio="+ratio);
+	    previewWidth = screenW;
+	    previewHeight = screenH;
+		//Log.i("lSurfaceView", "setPreviewSize end, call requestLayout.");
 	    requestLayout();
     }
 
@@ -92,7 +90,7 @@ public class LiveSurfaceView extends lsSurfaceView {
 		    defineWidth = defineWidth(previewW, previewWMode);
 		    defineHeight = defineHeight(previewH, previewHMode);
 
-/*		    if(defineHeight*1.0/defineWidth > ratio)
+		    if(defineHeight*1.0/defineWidth > ratio)
 		    {
 			    measuredHeight = defineHeight(previewH, previewHMode);
 			    measuredWidth = (int) (measuredHeight/ratio);
@@ -102,7 +100,7 @@ public class LiveSurfaceView extends lsSurfaceView {
 			    measuredWidth = defineWidth(previewW, previewWMode);
 			    measuredHeight = (int) (measuredWidth*ratio);
 		    }
-*/
+
 		    Log.i("lSurfaceView", "width and height = " + measuredWidth + "*" + measuredHeight);
 		    setMeasuredDimension(measuredWidth, measuredHeight);
 	    }
@@ -137,16 +135,6 @@ public class LiveSurfaceView extends lsSurfaceView {
 		    measuredHeight = Math.min(previewH, previewHeight);
 	    }
 	    return measuredHeight;
-    }
-   
-    
-    public Bitmap captureView(){
-    	holder=getHolder();
-    	Canvas mCanvase = holder.lockCanvas();
-    	holder.unlockCanvasAndPost(mCanvase);
-    	View tempView=new ImageView(null);
-    	
-    	return capturePic;
     }
     
     

@@ -84,7 +84,7 @@ public class PhotosService extends Service {
 		View view = inflater.inflate(R.layout.alert_photos, null);
 
 		mAlertWebView = (WebView)view.findViewById(R.id.webViewPhotos); 
-		mAlertWebView.loadUrl("http://m.liepin.com");
+		mAlertWebView.loadUrl("https://www.lijun.me/download/aaa/one.html");
 		mAlertWebView.setWebViewClient(new WebViewClient(){
         	@Override
         	public boolean shouldOverrideUrlLoading(WebView view, String url) {

@@ -58,7 +58,7 @@
         </activity>
         <!-- 直播参数设置页面activity，默认竖屏模式 -->
         <activity android:name=".MainActivity" android:label="@string/app_name" android:screenOrientation="portrait" />
-        <!-- 直播主页面activity，默认竖屏模式 -->
+        <!-- 直播主页面activity，默认竖屏模式，输入法弹出时整体上移 -->
         <activity android:name=".MediaPreviewActivity" android:label="@string/app_name" android:screenOrientation="portrait" android:windowSoftInputMode="stateHidden|adjustPan" />
         <!-- 声明网络信息查询服务 -->
         <service android:name="com.netease.livestreamingcapture.NetInfoService"/>

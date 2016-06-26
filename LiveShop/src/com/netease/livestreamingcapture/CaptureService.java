@@ -31,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -116,7 +117,19 @@ public class CaptureService extends Service {
 		mDialog = new Dialog(CaptureService.this);
 		mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		mDialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
+		WindowManager.LayoutParams params= mDialog.getWindow().getAttributes();
 
+		//调整DIALOG窗口位置。
+		//取消外层边距
+		Window win = mDialog.getWindow();
+		win.getDecorView().setPadding(0, 0, 0, 0);
+		
+		params.width=WindowManager.LayoutParams.FILL_PARENT;
+		params.height=WindowManager.LayoutParams.WRAP_CONTENT;
+		params.y=20;
+		
+		win.setAttributes(params);
+		
 		//得到容器，通过这个inflater来获得悬浮窗控件
 		inflater = LayoutInflater.from(getApplication());
 		// 获取浮动窗口视图所在布局
@@ -141,7 +154,7 @@ public class CaptureService extends Service {
 		}
 		
 		introTxt=(EditText)view.findViewById(R.id.introTxt);
-		introTxt.setText(imgFilePath);
+		//introTxt.setText(imgFilePath);
 		
 		//发送按钮，按下后POST方式发送图片和说明文本到服务器
 		subBtn=(Button)view.findViewById(R.id.submitButton);

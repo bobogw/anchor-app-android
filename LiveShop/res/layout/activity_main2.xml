@@ -34,7 +34,7 @@
             android:paddingBottom="13dp"
             android:paddingLeft="13dp"
             android:paddingTop="13dp"
-            android:text="rtmp://p1.live.126.net/live/9b9fcaae324249209109f06271024604?wsSecret=918b3c4dbad3e5500a3010c23dff93b7&amp;wsTime=1465292112"
+            android:text=""
             android:textColor="#333333"
             android:textSize="20dp" />
     

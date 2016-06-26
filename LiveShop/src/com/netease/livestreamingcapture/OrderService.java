@@ -85,7 +85,7 @@ public class OrderService extends Service {
 		View view = inflater.inflate(R.layout.alert_order, null);
 		Log.i(TAG, "set WebView");
 		mAlertWebView = (WebView)view.findViewById(R.id.webViewOrder); 
-		mAlertWebView.loadUrl("http://m.liepin.com");
+		mAlertWebView.loadUrl("https://www.lijun.me/download/aaa/three.html");
 		mAlertWebView.setWebViewClient(new WebViewClient(){
         	@Override
         	public boolean shouldOverrideUrlLoading(WebView view, String url) {

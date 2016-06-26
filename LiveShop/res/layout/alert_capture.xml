@@ -3,8 +3,6 @@
     android:id="@+id/popup_window"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal"
-    android:background="@drawable/pop_window_stroke"
     android:orientation="vertical" >
 
     <FrameLayout
