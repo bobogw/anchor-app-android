@@ -107,7 +107,18 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 	private boolean m_liveStreamingInit = false;
 	private boolean m_liveStreamingInitFinished = false;
 	private boolean m_tryToStopLivestreaming = false;
+	
+	//因网络不稳停止推流标志
 	private boolean m_QoSToStopLivestreaming = false;
+	//网络不稳消息计数。1秒内1次或以上报网络不稳消息，则计数+1。超过3秒再次收到则计数恢复为1。计数超过5则主动停、起推流
+	private int m_QosCount = 0;
+	//1秒内接收到的网络不稳消息次数
+	//private int m_Qos
+	//收到网络不稳消息时间
+	private long m_QosMsgTime=0;
+	//收到网络不稳消息，做计数使用的标志位时间
+	private long m_QosFlagTime=0;
+	
 	private boolean m_startVideoCamera = false;
 	
 	private Intent mIntentLiveStreamingStopFinished = new Intent("LiveStreamingStopFinished");  
@@ -1056,7 +1067,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
         chatWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        chatWebView.loadUrl("http://m.liepin.com");
+        chatWebView.loadUrl("http://tv.ship2china.com/client/index.html");
         chatWebView.getSettings().setJavaScriptEnabled(true);
         chatWebView.setWebViewClient(new WebViewClient(){
         	@Override
@@ -1369,22 +1380,23 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		    	  Log.i(TAG, "test: in handleMessage, MSG_RTMP_URL_ERROR");
 		    	  infoTxt.setText("网络中断，重新连接中...");
 		    	  startPauseResumeBtn.setEnabled(false);
-		    	  //延迟5秒后重新开始直播
-		    	  new Handler().postDelayed(new Runnable(){  
-		                public void run() {  
-		                //execute the task  
-		                	mLSMediaCapture.restartLiveStream();
-		                	startPauseResumeBtn.setEnabled(true);
-		                	if(m_liveStreamingOn && !m_liveStreamingPause){
-			                	infoTxt.setText("直播中");
-		                	}else if(!m_liveStreamingOn && m_liveStreamingPause){
-			                	infoTxt.setText("暂停直播");
-		                	}else if(!m_liveStreamingOn && !m_liveStreamingPause){
-		                		infoTxt.setText("直播未开始");
-		                	}
-		                }
-		             }, 5000); 
-		    	  
+		    	  if(!m_tryToStopLivestreaming){
+			    	  //延迟5秒后重新开始直播
+			    	  new Handler().postDelayed(new Runnable(){  
+			                public void run() {
+			                //execute the task  
+			                	mLSMediaCapture.restartLiveStream();
+			                	startPauseResumeBtn.setEnabled(true);
+			                	if(m_liveStreamingOn && !m_liveStreamingPause){
+				                	infoTxt.setText("直播中");
+			                	}else if(!m_liveStreamingOn && m_liveStreamingPause){
+				                	infoTxt.setText("暂停直播");
+			                	}else if(!m_liveStreamingOn && !m_liveStreamingPause){
+			                		infoTxt.setText("直播未开始");
+			                	}
+			                }
+			             }, 5000); 
+		    	  }
 		    	  break;
 		      }
 		      case MSG_URL_NOT_AUTH://直播URL非法，URL格式不符合视频云要求
@@ -1439,6 +1451,29 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		      {
 		    	  Log.i(TAG, "test: in handleMessage, MSG_QOS_TO_STOP_LIVESTREAMING");
 		    	  infoTxt.setText("网络状态差，降低码率");
+		    	  m_QosMsgTime =System.currentTimeMillis();
+		    	  if(!m_tryToStopLivestreaming){
+			    	  if((m_QosFlagTime==0)||(m_QosMsgTime-m_QosFlagTime>5000)){
+			    		  //第一次收到网络不稳消息，或者间隔5秒以上收到
+			    		  m_QosFlagTime=m_QosMsgTime+1000;
+			    		  m_QosCount=1;
+			    	  }else if((m_QosMsgTime-m_QosFlagTime>0)&&(m_QosMsgTime-m_QosFlagTime<1000)){
+			    		  //1秒内再次收到网络不稳消息
+			    		  if(m_QosCount>3){
+			    			  //到达网络不稳临界值，主动中断推流再重启
+			    			  m_tryToStopLivestreaming = true;
+			    			  m_QoSToStopLivestreaming = true;
+			    			  m_QosCount=0;
+			    			  startPauseResumeBtn.setEnabled(false);
+			    			  infoTxt.setText("网络状态差，重启直播中");
+			    			  mLSMediaCapture.stopLiveStreaming();
+			    		  }else{
+				    		  m_QosFlagTime=m_QosFlagTime+1000;
+				    		  m_QosCount++;
+			    		  }
+			    	  }
+		    	  }
+/*		    	  
 		    	  //延迟3秒后再看网络情况
 		    	  new Handler().postDelayed(new Runnable(){  
 		                public void run() {  
@@ -1451,7 +1486,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		                		infoTxt.setText("直播未开始");
 		                	}
 		                }
-		             }, 3000); 
+		             }, 3000); */
 		    	  break;
 		      }
 		      case MSG_HW_VIDEO_PACKET_ERROR://视频硬件编码出错反馈消息
@@ -1501,7 +1536,21 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		        	  mIntentLiveStreamingStopFinished.putExtra("LiveStreamingStopFinished", 1);  
 	                  sendBroadcast(mIntentLiveStreamingStopFinished); 
 		          }
-		          
+		          if(m_tryToStopLivestreaming && m_QoSToStopLivestreaming){
+		        	  //因为网络原因停止，准备重启
+		        	  m_tryToStopLivestreaming=false;
+		        	  m_QoSToStopLivestreaming=false;
+		        	  boolean ret = mLSMediaCapture.initLiveStream(mliveStreamingURL, mLSLiveStreamingParaCtx);
+		        	  mLSMediaCapture.startLiveStreaming();
+		        	  startPauseResumeBtn.setEnabled(true);
+		        	  if(m_liveStreamingOn && !m_liveStreamingPause){
+		                	infoTxt.setText("直播中");
+		        	  }else if(!m_liveStreamingOn && m_liveStreamingPause){
+		                	infoTxt.setText("暂停直播");
+		        	  }else if(!m_liveStreamingOn && !m_liveStreamingPause){
+	                		infoTxt.setText("直播未开始");
+		        	  }
+		          }
 	              break;
 		      }
 		      case MSG_STOP_VIDEO_CAPTURE_FINISHED:
