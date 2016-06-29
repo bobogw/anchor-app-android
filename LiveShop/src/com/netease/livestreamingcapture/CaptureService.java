@@ -105,10 +105,6 @@ public class CaptureService extends Service {
 	}
 
 	
-	
-	
-	
-	
 	/**
 	 * 初始化
 	 */
@@ -117,18 +113,8 @@ public class CaptureService extends Service {
 		mDialog = new Dialog(CaptureService.this);
 		mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		mDialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
-		WindowManager.LayoutParams params= mDialog.getWindow().getAttributes();
-
-		//调整DIALOG窗口位置。
-		//取消外层边距
-		Window win = mDialog.getWindow();
-		win.getDecorView().setPadding(0, 0, 0, 0);
-		
-		params.width=WindowManager.LayoutParams.FILL_PARENT;
-		params.height=WindowManager.LayoutParams.WRAP_CONTENT;
-		params.y=20;
-		
-		win.setAttributes(params);
+		//mDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM, WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+		//mDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 		
 		//得到容器，通过这个inflater来获得悬浮窗控件
 		inflater = LayoutInflater.from(getApplication());
@@ -175,13 +161,21 @@ public class CaptureService extends Service {
         });
 		
 		// 添加悬浮窗的视图
-//		if(bShowAlert) {
-		    mDialog.setContentView(view);
-//		    mDialog.setTitle("警告");
+		mDialog.setContentView(view);
+		mDialog.setCanceledOnTouchOutside(true);
+		mDialog.show();
 		
-		    mDialog.setCanceledOnTouchOutside(true);
-		    mDialog.show();
-//		}
+		//调整DIALOG窗口位置。
+		WindowManager.LayoutParams params= mDialog.getWindow().getAttributes();
+		//取消外层边距
+		Window win = mDialog.getWindow();
+		win.getDecorView().setPadding(30, 0, 30, 0);
+		
+		params.width=WindowManager.LayoutParams.MATCH_PARENT;
+		params.height=WindowManager.LayoutParams.WRAP_CONTENT;
+		params.y=-260;
+		
+		win.setAttributes(params);
 	}
 	
 	/**

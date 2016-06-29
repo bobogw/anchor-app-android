@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.view.View;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -61,6 +62,11 @@ import android.media.AudioFormat;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationClientOption.AMapLocationMode;
+import com.amap.api.location.AMapLocationListener;
 import com.netease.LSMediaCapture.*;
 import com.netease.LSMediaCapture.lsMediaCapture.*;
 import com.netease.LSMediaCapture.util.storage.StorageType;
@@ -217,6 +223,15 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
     
     //添加状态信息显示
     private TextView infoTxt;
+    
+  //-------------------------add location------------------------------
+    //声明AMapLocationClient类对象
+    public AMapLocationClient mLocationClient = null;
+    //声明定位回调监听器
+    public AMapLocationListener mLocationListener = null;
+  //声明mLocationOption对象
+    public AMapLocationClientOption mLocationOption = null;
+    
     
     //提示用户不能使用滤镜功能的对话框
     private void showAlertDialog1() {
@@ -1067,7 +1082,7 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         //显示聊天webview
         chatWebView=(WebView)findViewById(R.id.chatWebView);
         chatWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        chatWebView.loadUrl("http://tv.ship2china.com/client/index.html");
+        chatWebView.loadUrl("http://192.168.8.164:8080/client/index.html");
         chatWebView.getSettings().setJavaScriptEnabled(true);
         chatWebView.setWebViewClient(new WebViewClient(){
         	@Override
@@ -1101,6 +1116,65 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
         
         mScreenShotFilePath = mScreenShotFilePath + df.format(mDate) + "/";
         
+        //------------------add location---------------------------
+        //初始化定位
+        mLocationClient = new AMapLocationClient(getApplicationContext());
+        
+        mLocationListener= new AMapLocationListener(){
+        	@Override
+        	public void onLocationChanged(AMapLocation amapLocation) {
+        		// TODO 自动生成的方法存根
+        		if (amapLocation != null) {
+        			//通知定位结果代码
+        			mNetInfoIntent.putExtra("locationCode", amapLocation.getErrorCode());
+        	        if (amapLocation.getErrorCode() == 0) {
+        	        	HashMap<String, Object> locationMsg = new HashMap<String, Object>();
+        		        //定位成功回调信息，设置相关消息
+        		        locationMsg.put("type", amapLocation.getLocationType());//获取当前定位结果来源，如网络定位结果，详见定位类型表
+        		        locationMsg.put("latitude", amapLocation.getLatitude());//获取纬度
+        		        locationMsg.put("longitude", amapLocation.getLongitude());//获取经度
+        		        locationMsg.put("accuracy", amapLocation.getAccuracy());//获取精度信息
+        		        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        		        Date date = new Date(amapLocation.getTime());
+        		        locationMsg.put("datetime", df.format(date));//定位时间
+        		        locationMsg.put("address", amapLocation.getCountry()+amapLocation.getAddress());//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
+        		        //locationList.add(locationMsg);
+        		        mNetInfoIntent.putExtra("latitude", amapLocation.getLatitude());
+        		        mNetInfoIntent.putExtra("longitude", amapLocation.getLongitude());
+        		        mNetInfoIntent.putExtra("address", amapLocation.getCountry()+amapLocation.getAddress());
+        		        
+        	        } else {
+        		        //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
+        /*		        Log.e("AmapError","location Error, ErrCode:"
+        		            + amapLocation.getErrorCode() + ", errInfo:"
+        		            + amapLocation.getErrorInfo());*/
+        	        }
+        	        sendBroadcast(mNetInfoIntent);
+        		}
+        	}
+        };
+        
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
+        
+        //初始化定位参数
+        mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为高精度模式，Battery_Saving为低功耗模式，Device_Sensors是仅设备模式
+        mLocationOption.setLocationMode(AMapLocationMode.Hight_Accuracy);
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(true);
+        //设置是否只定位一次,默认为false
+        mLocationOption.setOnceLocation(false);
+        //设置是否强制刷新WIFI，默认为强制刷新
+        mLocationOption.setWifiActiveScan(true);
+        //设置是否允许模拟位置,默认为false，不允许模拟位置
+        mLocationOption.setMockEnable(false);
+        //设置定位间隔,单位毫秒,默认为2000ms
+        mLocationOption.setInterval(5000);
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
         
     }
     
@@ -1255,6 +1329,10 @@ public class MediaPreviewActivity extends Activity implements View.OnClickListen
 		if(m_liveStreamingOn) {
 		    m_liveStreamingOn = false;
 		}
+		
+		//销毁定位对象
+		mLocationClient.stopLocation();//停止定位
+		mLocationClient.onDestroy();//销毁定位客户端。
 		
 		super.onDestroy();
 	}

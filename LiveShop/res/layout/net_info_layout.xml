@@ -25,7 +25,7 @@
                 android:id="@+id/VideoFrameRateNotify" 
                 android:layout_width="30dp" 
                 android:layout_weight="1"
-                android:layout_height="32dp" 
+                android:layout_height="wrap_content" 
                 android:orientation="horizontal"
                 android:text="视频编码帧率:" 
                 android:textSize="13dp"
@@ -34,7 +34,7 @@
             <TextView
                 android:id="@+id/VideoFrameRateTV"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:focusable="true"
                 android:text="0fps"
@@ -56,7 +56,7 @@
                 android:id="@+id/VideoBitRateNotify" 
                 android:layout_width="30dp" 
                 android:layout_weight="1"
-                android:layout_height="32dp" 
+                android:layout_height="wrap_content" 
                 android:orientation="horizontal"
                 android:text="视频编码码率:" 
                 android:textSize="13dp"
@@ -65,7 +65,7 @@
             <TextView
                 android:id="@+id/VideoBitRateTV"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:focusable="true"
                 android:padding="3dp"
@@ -88,7 +88,7 @@
                 android:id="@+id/AudioBitRateNotify" 
                 android:layout_width="30dp" 
                 android:layout_weight="1"
-                android:layout_height="32dp" 
+                android:layout_height="wrap_content" 
                 android:orientation="horizontal"
                 android:text="音频编码码率:" 
                 android:textSize="13dp"
@@ -97,7 +97,7 @@
             <TextView
                 android:id="@+id/AudioBitRateTV"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:focusable="true"
                 android:text="0fps"
@@ -119,7 +119,7 @@
                 android:id="@+id/TotalRealBitRateNotify" 
                 android:layout_width="30dp" 
                 android:layout_weight="1"
-                android:layout_height="32dp" 
+                android:layout_height="wrap_content" 
                 android:orientation="horizontal"
                 android:text="总的实际发送码率:" 
                 android:textSize="13dp"
@@ -128,7 +128,7 @@
             <TextView
                 android:id="@+id/TotalRealBitRateTV"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:focusable="true"
                 android:text="0fps"
@@ -150,7 +150,7 @@
                 android:id="@+id/ResolutionNotify" 
                 android:layout_width="30dp" 
                 android:layout_weight="1"
-                android:layout_height="32dp" 
+                android:layout_height="wrap_content" 
                 android:orientation="horizontal"
                 android:text="清晰度:" 
                 android:textSize="13dp"
@@ -159,7 +159,7 @@
             <TextView
                 android:id="@+id/ResolutionTV"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:focusable="true"
                 android:padding="3dp"
@@ -168,5 +168,102 @@
                 android:textSize="13dp" />
 
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/LatitudeWindow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ResolutionWindow"
+            android:orientation="horizontal"
+            android:layout_marginTop="0dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp" >
+
+            <TextView 
+                android:id="@+id/LatitudeNotify" 
+                android:layout_width="30dp" 
+                android:layout_weight="1"
+                android:layout_height="wrap_content" 
+                android:orientation="horizontal"
+                android:text="纬度:" 
+                android:textSize="13dp"
+                android:textColor="#00ffff" />
+
+            <TextView
+                android:id="@+id/Latitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:focusable="true"
+                android:padding="3dp"
+                android:singleLine="false"
+                android:text=" "
+                android:textSize="13dp" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/LongitudeWindow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/LatitudeWindow"
+            android:orientation="horizontal"
+            android:layout_marginTop="0dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp" >
+
+            <TextView 
+                android:id="@+id/LongitudeNotify" 
+                android:layout_width="30dp" 
+                android:layout_weight="1"
+                android:layout_height="wrap_content" 
+                android:orientation="horizontal"
+                android:text="经度:" 
+                android:textSize="13dp"
+                android:textColor="#00ffff" />
+
+            <TextView
+                android:id="@+id/Longitude"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:focusable="true"
+                android:padding="3dp"
+                android:singleLine="false"
+                android:text=" "
+                android:textSize="13dp" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/AddressWindow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/LongitudeWindow"
+            android:orientation="horizontal"
+            android:layout_marginTop="0dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp" >
+
+            <TextView 
+                android:id="@+id/AddressNotify" 
+                android:layout_width="30dp" 
+                android:layout_weight="1"
+                android:layout_height="wrap_content" 
+                android:orientation="horizontal"
+                android:text="地址:" 
+                android:textSize="13dp"
+                android:textColor="#00ffff" />
+
+            <TextView
+                android:id="@+id/Address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:focusable="true"
+                android:padding="4dp"
+                android:singleLine="false"
+                android:text=" "
+                android:textSize="13dp" />
+
+        </LinearLayout>
+        
     </RelativeLayout>
 </LinearLayout>
